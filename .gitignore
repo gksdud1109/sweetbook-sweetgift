@@ -5,7 +5,6 @@ dist
 coverage
 .turbo
 .DS_Store
-pnpm-lock.yaml
 *.tsbuildinfo
 .env
 apps/api/.env

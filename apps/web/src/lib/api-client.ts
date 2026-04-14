@@ -127,22 +127,33 @@ export async function createAlbumDraft(
       albumDraftSummarySchema,
     );
 
-    const detail: AlbumDraftDetail = {
-      ...(await createMockAlbumDraft(payload)),
-      draftId: summary.draftId,
-      status: summary.status,
-      title: summary.title,
-      subtitle: summary.subtitle,
-      coverPhotoUrl: summary.coverPhotoUrl,
-      generatedPages: summary.generatedPages,
-    };
+    try {
+      return {
+        data: await requestJson(
+          `/api/v1/album-drafts/${summary.draftId}`,
+          { method: "GET" },
+          albumDraftDetailSchema,
+        ),
+        source: "api",
+      };
+    } catch {
+      const fallbackDetail: AlbumDraftDetail = {
+        ...(await createMockAlbumDraft(payload)),
+        draftId: summary.draftId,
+        status: summary.status,
+        title: summary.title,
+        subtitle: summary.subtitle,
+        coverPhotoUrl: summary.coverPhotoUrl,
+        generatedPages: summary.generatedPages,
+      };
 
-    return {
-      data: detail,
-      source: "api",
-    };
-  } catch (error) {
-    const normalized = normalizeError(error);
+      return {
+        data: fallbackDetail,
+        source: "api",
+      };
+    }
+  } catch (postError) {
+    const normalized = normalizeError(postError);
     if (!normalized.fallbackEligible) {
       throw normalized;
     }

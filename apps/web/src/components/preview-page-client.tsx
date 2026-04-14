@@ -29,7 +29,7 @@ export function PreviewPageClient() {
 
     const draftId = draftIdFromQuery;
 
-    if (draft?.draftId === draftId) {
+    if (source === "mock" && draft?.draftId === draftId) {
       return;
     }
 
@@ -64,7 +64,7 @@ export function PreviewPageClient() {
     return () => {
       cancelled = true;
     };
-  }, [draft?.draftId, draftIdFromQuery, hydrated, setDraft]);
+  }, [draft?.draftId, draftIdFromQuery, hydrated, setDraft, source]);
 
   async function handleCreateBook() {
     if (!draft) {
