@@ -1,14 +1,28 @@
-// In-memory draft store.
+// Draft store — JSON file-backed persistence.
 //
-// No database is required for the MVP; drafts live in process memory.
-// Tradeoffs to be aware of:
-//   - Drafts are lost on server restart.
-//   - Not safe for multi-process / horizontally scaled deployments.
-//   - Duplicate POST /album-drafts calls create new drafts each time
-//     (acceptable for assignment scope; add idempotency key + DB for production).
+// Stores drafts AND a bookId→orderId index in the same JSON file so both
+// survive server restarts. The index ensures idempotency for POST /orders
+// even when the draft itself cannot be found (corrupt file, manual bookId).
 //
-// TODO: replace with a lightweight KV store (e.g. Redis, SQLite) if this
-// service is promoted to production.
+// File format:
+//   { "drafts": [[draftId, draft], ...], "orderIndex": [[bookId, orderId], ...] }
+//
+// Design tradeoffs:
+//   - Single-process only: no file locking, not safe for concurrent writers.
+//   - Every write rewrites the entire file. Acceptable at MVP scale; switch to
+//     SQLite (WAL mode) for concurrent or high-write scenarios.
+//   - writeFile (async) is used to avoid blocking the Node.js event loop on
+//     every POST request.
+//
+// Path: DATA_DIR env var (default: apps/api/data/drafts.json).
+// Set DATA_DIR to a tmpdir in tests so test runs never touch the real file.
+
+import { existsSync, mkdirSync, readFileSync } from "fs";
+import { writeFile } from "fs/promises";
+import { dirname, resolve } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export interface StoredDraft {
   draftId: string;
@@ -37,38 +51,105 @@ export interface StoredDraft {
     body?: string;
     photoUrl?: string;
   }>;
-  // bookId is set when POST /books succeeds
   bookId?: string;
-  // orderId is set when POST /orders succeeds — used for idempotency check
   orderId?: string;
 }
 
-const store = new Map<string, StoredDraft>();
+interface PersistenceData {
+  drafts: Array<[string, StoredDraft]>;
+  orderIndex: Array<[string, string]>; // [bookId, orderId]
+}
 
-export function saveDraft(draft: StoredDraft): void {
+// ── Storage path ──────────────────────────────────────────────────────────────
+
+function resolveStorePath(): string {
+  if (process.env.DATA_DIR) {
+    return resolve(process.env.DATA_DIR, "drafts.json");
+  }
+  return resolve(__dirname, "../../data/drafts.json");
+}
+
+// ── Load ──────────────────────────────────────────────────────────────────────
+
+function load(): { draftStore: Map<string, StoredDraft>; orderStore: Map<string, string> } {
+  const path = resolveStorePath();
+  if (!existsSync(path)) {
+    return { draftStore: new Map(), orderStore: new Map() };
+  }
+  try {
+    const raw = readFileSync(path, "utf-8");
+    const parsed = JSON.parse(raw) as PersistenceData | Array<[string, StoredDraft]>;
+
+    // Legacy format: flat array of [draftId, draft] pairs (migrate transparently)
+    if (Array.isArray(parsed)) {
+      return { draftStore: new Map(parsed), orderStore: new Map() };
+    }
+
+    return {
+      draftStore: new Map(parsed.drafts ?? []),
+      orderStore: new Map(parsed.orderIndex ?? []),
+    };
+  } catch (e) {
+    console.error("[draft-store] corrupt or unreadable store file — starting fresh:", e);
+    return { draftStore: new Map(), orderStore: new Map() };
+  }
+}
+
+// ── In-process state (loaded once at startup) ─────────────────────────────────
+
+const { draftStore: store, orderStore: orderIndex } = load();
+
+// ── Persist ───────────────────────────────────────────────────────────────────
+
+async function persist(): Promise<void> {
+  const path = resolveStorePath();
+  mkdirSync(dirname(path), { recursive: true });
+  const data: PersistenceData = {
+    drafts: [...store.entries()],
+    orderIndex: [...orderIndex.entries()],
+  };
+  await writeFile(path, JSON.stringify(data, null, 2), "utf-8");
+}
+
+// ── Draft API ─────────────────────────────────────────────────────────────────
+
+export async function saveDraft(draft: StoredDraft): Promise<void> {
   store.set(draft.draftId, draft);
+  await persist();
 }
 
 export function getDraft(draftId: string): StoredDraft | undefined {
   return store.get(draftId);
 }
 
-export function updateDraft(
+export async function updateDraft(
   draftId: string,
   patch: Partial<StoredDraft>,
-): StoredDraft | undefined {
+): Promise<StoredDraft | undefined> {
   const existing = store.get(draftId);
   if (!existing) return undefined;
   const updated = { ...existing, ...patch };
   store.set(draftId, updated);
+  await persist();
   return updated;
 }
 
-// Reverse lookup: find the draft that owns a given bookId.
-// Used by POST /orders to detect duplicate submissions for the same book.
 export function getDraftByBookId(bookId: string): StoredDraft | undefined {
   for (const draft of store.values()) {
     if (draft.bookId === bookId) return draft;
   }
   return undefined;
+}
+
+// ── Order idempotency index ───────────────────────────────────────────────────
+// Separate from draft lookup so idempotency holds even when the draft cannot
+// be found (corrupt store, external bookId, store was cleared).
+
+export function getOrderIdByBookId(bookId: string): string | undefined {
+  return orderIndex.get(bookId);
+}
+
+export async function saveOrderId(bookId: string, orderId: string): Promise<void> {
+  orderIndex.set(bookId, orderId);
+  await persist();
 }
