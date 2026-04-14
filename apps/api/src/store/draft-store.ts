@@ -1,28 +1,19 @@
-// Draft store — JSON file-backed persistence.
+// Draft store — SQLite-backed persistence via better-sqlite3.
 //
-// Stores drafts AND a bookId→orderId index in the same JSON file so both
-// survive server restarts. The index ensures idempotency for POST /orders
-// even when the draft itself cannot be found (corrupt file, manual bookId).
+// Replaces the previous JSON-file store.  All public function signatures are
+// identical so existing routes require no changes.
 //
-// File format:
-//   { "drafts": [[draftId, draft], ...], "orderIndex": [[bookId, orderId], ...] }
-//
-// Design tradeoffs:
-//   - Single-process only: no file locking, not safe for concurrent writers.
-//   - Every write rewrites the entire file. Acceptable at MVP scale; switch to
-//     SQLite (WAL mode) for concurrent or high-write scenarios.
-//   - writeFile (async) is used to avoid blocking the Node.js event loop on
-//     every POST request.
-//
-// Path: DATA_DIR env var (default: apps/api/data/drafts.json).
-// Set DATA_DIR to a tmpdir in tests so test runs never touch the real file.
+// Design notes:
+//   - better-sqlite3 is synchronous; wrapping calls in async functions keeps
+//     the caller API compatible and allows a future swap to an async driver.
+//   - moments and generatedPages are stored as JSON strings in TEXT columns —
+//     avoids extra tables while remaining fully queryable for MVP needs.
+//   - order_index is a separate table so idempotency holds even when the
+//     draft row is missing (corrupt DB, manually provided bookId).
 
-import { existsSync, mkdirSync, readFileSync } from "fs";
-import { writeFile } from "fs/promises";
-import { dirname, resolve } from "path";
-import { fileURLToPath } from "url";
+import { db } from "./db.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+// ── Public types ──────────────────────────────────────────────────────────────
 
 export interface StoredDraft {
   draftId: string;
@@ -55,101 +46,170 @@ export interface StoredDraft {
   orderId?: string;
 }
 
-interface PersistenceData {
-  drafts: Array<[string, StoredDraft]>;
-  orderIndex: Array<[string, string]>; // [bookId, orderId]
+// ── Row type (internal) ───────────────────────────────────────────────────────
+
+interface DraftRow {
+  draft_id: string;
+  status: string;
+  anniversary_type: string;
+  anniversary_date: string;
+  sender_name: string;
+  receiver_name: string;
+  title: string;
+  subtitle: string;
+  letter: string;
+  cover_photo_url: string;
+  moments_json: string;
+  generated_pages_json: string;
+  book_id: string | null;
+  order_id: string | null;
+  created_at: number;
 }
 
-// ── Storage path ──────────────────────────────────────────────────────────────
+// ── Mapping ───────────────────────────────────────────────────────────────────
 
-function resolveStorePath(): string {
-  if (process.env.DATA_DIR) {
-    return resolve(process.env.DATA_DIR, "drafts.json");
-  }
-  return resolve(__dirname, "../../data/drafts.json");
-}
-
-// ── Load ──────────────────────────────────────────────────────────────────────
-
-function load(): { draftStore: Map<string, StoredDraft>; orderStore: Map<string, string> } {
-  const path = resolveStorePath();
-  if (!existsSync(path)) {
-    return { draftStore: new Map(), orderStore: new Map() };
-  }
-  try {
-    const raw = readFileSync(path, "utf-8");
-    const parsed = JSON.parse(raw) as PersistenceData | Array<[string, StoredDraft]>;
-
-    // Legacy format: flat array of [draftId, draft] pairs (migrate transparently)
-    if (Array.isArray(parsed)) {
-      return { draftStore: new Map(parsed), orderStore: new Map() };
-    }
-
-    return {
-      draftStore: new Map(parsed.drafts ?? []),
-      orderStore: new Map(parsed.orderIndex ?? []),
-    };
-  } catch (e) {
-    console.error("[draft-store] corrupt or unreadable store file — starting fresh:", e);
-    return { draftStore: new Map(), orderStore: new Map() };
-  }
-}
-
-// ── In-process state (loaded once at startup) ─────────────────────────────────
-
-const { draftStore: store, orderStore: orderIndex } = load();
-
-// ── Persist ───────────────────────────────────────────────────────────────────
-
-async function persist(): Promise<void> {
-  const path = resolveStorePath();
-  mkdirSync(dirname(path), { recursive: true });
-  const data: PersistenceData = {
-    drafts: [...store.entries()],
-    orderIndex: [...orderIndex.entries()],
+function rowToDraft(row: DraftRow): StoredDraft {
+  return {
+    draftId: row.draft_id,
+    status: row.status as StoredDraft["status"],
+    anniversaryType: row.anniversary_type as StoredDraft["anniversaryType"],
+    anniversaryDate: row.anniversary_date,
+    couple: {
+      senderName: row.sender_name,
+      receiverName: row.receiver_name,
+    },
+    title: row.title,
+    subtitle: row.subtitle,
+    letter: row.letter,
+    coverPhotoUrl: row.cover_photo_url,
+    moments: JSON.parse(row.moments_json),
+    generatedPages: JSON.parse(row.generated_pages_json),
+    ...(row.book_id != null ? { bookId: row.book_id } : {}),
+    ...(row.order_id != null ? { orderId: row.order_id } : {}),
   };
-  await writeFile(path, JSON.stringify(data, null, 2), "utf-8");
 }
 
 // ── Draft API ─────────────────────────────────────────────────────────────────
 
 export async function saveDraft(draft: StoredDraft): Promise<void> {
-  store.set(draft.draftId, draft);
-  await persist();
+  db.prepare(`
+    INSERT INTO drafts (
+      draft_id, status, anniversary_type, anniversary_date,
+      sender_name, receiver_name, title, subtitle, letter,
+      cover_photo_url, moments_json, generated_pages_json,
+      book_id, order_id, created_at
+    ) VALUES (
+      @draftId, @status, @anniversaryType, @anniversaryDate,
+      @senderName, @receiverName, @title, @subtitle, @letter,
+      @coverPhotoUrl, @momentsJson, @generatedPagesJson,
+      @bookId, @orderId, @createdAt
+    )
+    ON CONFLICT(draft_id) DO UPDATE SET
+      status               = excluded.status,
+      anniversary_type     = excluded.anniversary_type,
+      anniversary_date     = excluded.anniversary_date,
+      sender_name          = excluded.sender_name,
+      receiver_name        = excluded.receiver_name,
+      title                = excluded.title,
+      subtitle             = excluded.subtitle,
+      letter               = excluded.letter,
+      cover_photo_url      = excluded.cover_photo_url,
+      moments_json         = excluded.moments_json,
+      generated_pages_json = excluded.generated_pages_json,
+      book_id              = excluded.book_id,
+      order_id             = excluded.order_id
+      -- created_at is intentionally excluded: preserve original creation time on update
+  `).run({
+    draftId: draft.draftId,
+    status: draft.status,
+    anniversaryType: draft.anniversaryType,
+    anniversaryDate: draft.anniversaryDate,
+    senderName: draft.couple.senderName,
+    receiverName: draft.couple.receiverName,
+    title: draft.title,
+    subtitle: draft.subtitle,
+    letter: draft.letter,
+    coverPhotoUrl: draft.coverPhotoUrl,
+    momentsJson: JSON.stringify(draft.moments),
+    generatedPagesJson: JSON.stringify(draft.generatedPages),
+    bookId: draft.bookId ?? null,
+    orderId: draft.orderId ?? null,
+    createdAt: Date.now(), // milliseconds — monotonic within a process, survives fast test sequences
+  });
 }
 
 export function getDraft(draftId: string): StoredDraft | undefined {
-  return store.get(draftId);
+  const row = db.prepare(
+    "SELECT * FROM drafts WHERE draft_id = ?",
+  ).get(draftId) as DraftRow | undefined;
+  return row ? rowToDraft(row) : undefined;
 }
 
 export async function updateDraft(
   draftId: string,
   patch: Partial<StoredDraft>,
 ): Promise<StoredDraft | undefined> {
-  const existing = store.get(draftId);
+  const existing = getDraft(draftId);
   if (!existing) return undefined;
   const updated = { ...existing, ...patch };
-  store.set(draftId, updated);
-  await persist();
+  await saveDraft(updated);
   return updated;
 }
 
 export function getDraftByBookId(bookId: string): StoredDraft | undefined {
-  for (const draft of store.values()) {
-    if (draft.bookId === bookId) return draft;
-  }
-  return undefined;
+  const row = db.prepare(
+    "SELECT * FROM drafts WHERE book_id = ?",
+  ).get(bookId) as DraftRow | undefined;
+  return row ? rowToDraft(row) : undefined;
+}
+
+// ── Recent drafts ─────────────────────────────────────────────────────────────
+
+export interface RecentDraftSummary {
+  draftId: string;
+  title: string;
+  status: StoredDraft["status"];
+  coverPhotoUrl: string;
+  createdAt: number;
+}
+
+export function getRecentDrafts(limit = 5): RecentDraftSummary[] {
+  const rows = db.prepare(`
+    SELECT draft_id, title, status, cover_photo_url, created_at
+    FROM drafts
+    ORDER BY created_at DESC
+    LIMIT ?
+  `).all(limit) as Array<{
+    draft_id: string;
+    title: string;
+    status: string;
+    cover_photo_url: string;
+    created_at: number;
+  }>;
+
+  return rows.map((r) => ({
+    draftId: r.draft_id,
+    title: r.title,
+    status: r.status as StoredDraft["status"],
+    coverPhotoUrl: r.cover_photo_url,
+    createdAt: r.created_at,
+  }));
 }
 
 // ── Order idempotency index ───────────────────────────────────────────────────
-// Separate from draft lookup so idempotency holds even when the draft cannot
-// be found (corrupt store, external bookId, store was cleared).
+// Separate table so idempotency holds even when the draft row is gone.
 
 export function getOrderIdByBookId(bookId: string): string | undefined {
-  return orderIndex.get(bookId);
+  const row = db.prepare(
+    "SELECT order_id FROM order_index WHERE book_id = ?",
+  ).get(bookId) as { order_id: string } | undefined;
+  return row?.order_id;
 }
 
 export async function saveOrderId(bookId: string, orderId: string): Promise<void> {
-  orderIndex.set(bookId, orderId);
-  await persist();
+  db.prepare(`
+    INSERT INTO order_index (book_id, order_id)
+    VALUES (?, ?)
+    ON CONFLICT(book_id) DO UPDATE SET order_id = excluded.order_id
+  `).run(bookId, orderId);
 }
