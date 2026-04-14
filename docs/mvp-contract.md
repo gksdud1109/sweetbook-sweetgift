@@ -43,7 +43,7 @@
 - No auth
 - No payment integration
 - No real BGM playback
-- No real file upload pipeline
+- No cloud/S3 file storage (local disk upload only for the assignment)
 - No admin page
 - No database requirement for the first submission
 
@@ -65,7 +65,7 @@
 - User accounts
 - Saved drafts across sessions
 - Real payment/checkout
-- Real media upload storage
+- Cloud/S3 media storage (uploads are stored on local disk only)
 - Collaborative editing
 - AI content generation
 - BGM playback and sync
@@ -134,6 +134,7 @@
 - `SWEETBOOK_BASE_URL`
 - `PORT`
 - `CORS_ORIGIN`
+- `BASE_URL` — public base URL of the API server, used to construct upload file URLs (default: `http://localhost:3001`)
 
 ### Frontend required
 - `NEXT_PUBLIC_API_BASE_URL`
@@ -372,6 +373,45 @@ Backend responsibilities:
 - Call SweetBook `Orders API`
 - Return stable, minimal response fields
 
+## 7.7 Upload File
+
+### `POST /api/v1/uploads`
+
+Purpose:
+- Accept a single image file from the frontend
+- Store it on local disk
+- Return a publicly accessible URL for use as `coverPhotoUrl` or `moments[].photoUrl`
+
+Request:
+- Content-Type: `multipart/form-data`
+- Field name: `file`
+- Accepted MIME types: `image/jpeg`, `image/png`, `image/webp`, `image/gif`
+- Maximum file size: `5MB`
+
+Response:
+```json
+{
+  "data": {
+    "url": "http://localhost:3001/uploads/abc123def456.jpg",
+    "filename": "abc123def456.jpg"
+  }
+}
+```
+
+Error codes:
+- `VALIDATION_ERROR` — no file provided, unsupported MIME type, or file exceeds 5MB
+
+Backend responsibilities:
+- Validate MIME type and file size before writing to disk
+- Generate a UUID-based filename to prevent collisions
+- Save to `DATA_DIR/uploads/` (default: `apps/api/data/uploads/`)
+- Serve uploaded files statically at `/uploads/*`
+- Return `url` as `BASE_URL + /uploads/<filename>`
+
+Notes:
+- Uploaded files are stored on local disk only — not suitable for production multi-instance deployment
+- The `data/uploads/` directory is git-ignored; reviewers must start the server before upload URLs are resolvable
+
 ## 8. Frontend and Backend Boundary
 
 ### Frontend owns
@@ -389,6 +429,8 @@ Backend responsibilities:
 - SweetBook API integration
 - Error mapping from upstream to UI-safe error objects
 - Environment variable management
+- File upload handling and local disk storage
+- Static serving of uploaded files at `/uploads/*`
 
 ### Shared rules
 - Frontend must never call SweetBook directly
