@@ -6,12 +6,14 @@ import { ZodError } from "zod";
 import { createAlbumDraft } from "@/src/lib/api-client";
 import {
   addBlankMoment,
+  addQuickMoments,
   removeMoment,
   toDraftRequest,
 } from "@/src/lib/album-flow";
 import { useAlbumFlow } from "@/src/providers/album-flow-provider";
 import { labelForAnniversaryType } from "@/src/lib/utils";
 import { MomentEditor } from "@/src/components/moment-editor";
+import { ImageUpload } from "@/src/components/image-upload";
 import {
   Button,
   ButtonLink,
@@ -124,16 +126,16 @@ export default function CreatePage() {
                   }))
                 }
               />
-              <InputField
-                label="표지 사진 URL"
-                placeholder="/dummy/photos/cover.svg"
+              <ImageUpload
+                label="표지 사진"
                 value={form.coverPhotoUrl}
-                onChange={(event) =>
+                onChange={(url) =>
                   setForm((current) => ({
                     ...current,
-                    coverPhotoUrl: event.target.value,
+                    coverPhotoUrl: url,
                   }))
                 }
+                hint="파일 업로드 또는 URL 입력"
               />
               <InputField
                 label="보내는 사람 이름"
@@ -197,19 +199,32 @@ export default function CreatePage() {
 
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-serifDisplay text-3xl text-cocoa">Moments</p>
+            <p className="font-serif text-3xl text-cocoa">Moments</p>
             <p className="mt-2 text-sm text-rosewood/75">
               최소 3개, 최대 8개의 추억을 넣을 수 있습니다.
             </p>
           </div>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => setForm((current) => addBlankMoment(current))}
-            disabled={form.moments.length >= 8}
-          >
-            추억 추가
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setForm((current) => addQuickMoments(current));
+                setError(null);
+              }}
+              disabled={form.moments.length >= 8}
+            >
+              추억 3개 즉시 생성
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setForm((current) => addBlankMoment(current))}
+              disabled={form.moments.length >= 8}
+            >
+              추억 추가
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-5">

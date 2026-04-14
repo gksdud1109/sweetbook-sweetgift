@@ -95,6 +95,36 @@ export function createInitialOrderFormState(
   };
 }
 
+export function addQuickMoments(form: AlbumDraftFormState): AlbumDraftFormState {
+  if (form.moments.length >= 8) {
+    return form;
+  }
+
+  // sampleDraftForm에서 현재 폼에 없는 샘플을 찾아 최대 3개까지 추가
+  const { sampleDraftForm } = require("@/src/data/sample-draft");
+  const currentTitles = new Set(form.moments.map((m) => m.title));
+  const availableSamples = sampleDraftForm.moments.filter(
+    (m: EditableMoment) => !currentTitles.has(m.title),
+  );
+
+  const toAdd = availableSamples.slice(0, Math.min(3, 8 - form.moments.length));
+
+  if (toAdd.length === 0) {
+    return addBlankMoment(form);
+  }
+
+  return {
+    ...form,
+    moments: [
+      ...form.moments,
+      ...toAdd.map((s: EditableMoment) => ({
+        ...s,
+        id: `quick_${Math.random().toString(36).slice(2, 9)}`,
+      })),
+    ],
+  };
+}
+
 export function addBlankMoment(form: AlbumDraftFormState) {
   if (form.moments.length >= 8) {
     return form;

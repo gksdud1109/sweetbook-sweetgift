@@ -171,7 +171,7 @@ export default function OrderPage() {
         <p className="text-xs uppercase tracking-[0.3em] text-rosewood/60">
           Current Order Context
         </p>
-        <h2 className="mt-3 font-serifDisplay text-3xl text-cocoa">
+        <h2 className="mt-3 font-serif text-3xl text-cocoa">
           {draft?.title ?? "기념일 앨범"}
         </h2>
         <dl className="mt-8 space-y-4 text-sm text-rosewood/80">

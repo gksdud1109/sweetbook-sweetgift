@@ -29,7 +29,7 @@ export default function LandingPage() {
               <p className="text-xs uppercase tracking-[0.3em] text-rosewood/60">
                 Step {step}
               </p>
-              <h3 className="mt-3 font-serifDisplay text-2xl text-cocoa">
+              <h3 className="mt-3 font-serif text-2xl text-cocoa">
                 {title}
               </h3>
               <p className="mt-3 text-sm leading-7 text-rosewood/80">{body}</p>
@@ -53,7 +53,7 @@ export default function LandingPage() {
                 <p className="text-sm uppercase tracking-[0.3em] text-white/70">
                   Anniversary Album
                 </p>
-                <h2 className="mt-4 max-w-sm font-serifDisplay text-4xl leading-tight">
+                <h2 className="mt-4 max-w-sm font-serif text-4xl leading-tight">
                   A Year Written In Us
                 </h2>
                 <p className="mt-4 max-w-sm text-sm leading-7 text-white/80">
@@ -73,7 +73,7 @@ export default function LandingPage() {
                 <p className="text-xs uppercase tracking-[0.28em] text-rosewood/55">
                   Moment Page
                 </p>
-                <h3 className="mt-2 font-serifDisplay text-2xl text-cocoa">
+                <h3 className="mt-2 font-serif text-2xl text-cocoa">
                   초여름 산책
                 </h3>
                 <p className="mt-3 text-sm leading-7 text-rosewood/80">
@@ -85,7 +85,7 @@ export default function LandingPage() {
               <p className="text-xs uppercase tracking-[0.28em] text-rosewood/55">
                 Letter Page
               </p>
-              <p className="mt-4 font-serifDisplay text-3xl text-cocoa">
+              <p className="mt-4 font-serif text-3xl text-cocoa">
                 To. 지은
               </p>
               <p className="mt-4 text-sm leading-8 text-rosewood/80">

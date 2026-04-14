@@ -72,7 +72,7 @@ export default function CompletionPage() {
         <p className="text-xs uppercase tracking-[0.3em] text-rosewood/60">
           Next Action
         </p>
-        <h2 className="mt-3 font-serifDisplay text-3xl text-cocoa">
+        <h2 className="mt-3 font-serif text-3xl text-cocoa">
           같은 흐름을 다시 데모할 수 있습니다.
         </h2>
         <p className="mt-4 text-sm leading-7 text-rosewood/80">

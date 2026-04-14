@@ -24,14 +24,31 @@ const config: Config = {
           "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.7), transparent 22%), radial-gradient(circle at 80% 10%, rgba(255,255,255,0.35), transparent 18%), radial-gradient(circle at 50% 80%, rgba(217,124,98,0.08), transparent 26%)",
       },
       fontFamily: {
-        serifDisplay: [
+        serif: [
+          "var(--font-serif)",
           "Iowan Old Style",
           "Palatino Linotype",
           "Book Antiqua",
           "Georgia",
           "serif",
         ],
-        sansUI: ["Avenir Next", "Segoe UI", "Helvetica Neue", "sans-serif"],
+        sans: [
+          "var(--font-sans)",
+          "Pretendard",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "system-ui",
+          "Roboto",
+          "Helvetica Neue",
+          "Segoe UI",
+          "Apple SD Gothic Neo",
+          "Noto Sans KR",
+          "Malgun Gothic",
+          "Apple Color Emoji",
+          "Segoe UI Emoji",
+          "Segoe UI Symbol",
+          "sans-serif",
+        ],
       },
       keyframes: {
         rise: {

@@ -21,7 +21,7 @@ function renderPageContent(page: GeneratedPage) {
           <p className="text-xs uppercase tracking-[0.34em] text-white/70">
             Cover
           </p>
-          <h3 className="mt-3 font-serifDisplay text-3xl leading-tight">
+          <h3 className="mt-3 font-serif text-3xl leading-tight">
             {page.title}
           </h3>
           {page.body ? <p className="mt-3 text-sm text-white/80">{page.body}</p> : null}
@@ -45,7 +45,7 @@ function renderPageContent(page: GeneratedPage) {
             <p className="text-xs uppercase tracking-[0.34em] text-rosewood/55">
               Moment
             </p>
-            <h3 className="mt-3 font-serifDisplay text-3xl text-cocoa">
+            <h3 className="mt-3 font-serif text-3xl text-cocoa">
               {page.title}
             </h3>
             {page.body ? (
@@ -65,7 +65,7 @@ function renderPageContent(page: GeneratedPage) {
         <p className="text-xs uppercase tracking-[0.34em] text-rosewood/55">
           Letter
         </p>
-        <h3 className="mt-3 font-serifDisplay text-3xl">{page.title}</h3>
+        <h3 className="mt-3 font-serif text-3xl">{page.title}</h3>
         <p className="mt-6 whitespace-pre-wrap text-base leading-8 text-rosewood/85">
           {page.body}
         </p>
@@ -78,7 +78,7 @@ function renderPageContent(page: GeneratedPage) {
       <p className="text-xs uppercase tracking-[0.34em] text-rosewood/55">
         Closing
       </p>
-      <h3 className="mt-3 font-serifDisplay text-3xl">{page.title}</h3>
+      <h3 className="mt-3 font-serif text-3xl">{page.title}</h3>
       {page.body ? <p className="mt-4 text-sm leading-7 text-rosewood/80">{page.body}</p> : null}
     </div>
   );
@@ -110,7 +110,7 @@ export function PreviewBook({ draft }: { draft: AlbumDraftDetail }) {
         <p className="text-xs uppercase tracking-[0.34em] text-rosewood/60">
           Album Summary
         </p>
-        <h2 className="mt-3 font-serifDisplay text-3xl text-cocoa">
+        <h2 className="mt-3 font-serif text-3xl text-cocoa">
           {draft.title}
         </h2>
         <p className="mt-3 text-sm leading-7 text-rosewood/80">

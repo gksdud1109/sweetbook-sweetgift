@@ -105,6 +105,33 @@ function normalizeError(error: unknown) {
   });
 }
 
+export async function uploadFile(file: File): Promise<string> {
+  if (!API_BASE_URL) {
+    // Mock upload: return a local blob URL for preview
+    return URL.createObjectURL(file);
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/uploads`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null);
+    const parsedError = apiErrorSchema.safeParse(errorBody);
+    throw new ApiClientError(
+      parsedError.success ? parsedError.data.error.message : "파일 업로드에 실패했습니다.",
+      { status: response.status }
+    );
+  }
+
+  const body = await response.json();
+  return apiResponseSchema(z.object({ url: z.string() })).parse(body).data.url;
+}
+
 export async function createAlbumDraft(
   input: CreateAlbumDraftRequest,
 ): Promise<ApiResult<AlbumDraftDetail>> {
