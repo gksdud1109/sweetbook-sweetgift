@@ -98,11 +98,13 @@ export function ButtonLink({
 export function InputField({
   label,
   hint,
+  error,
   className,
   ...props
 }: InputHTMLAttributes<HTMLInputElement> & {
   label: string;
   hint?: string;
+  error?: string;
   className?: string;
 }) {
   return (
@@ -114,10 +116,12 @@ export function InputField({
       <input
         className={cn(
           "w-full rounded-[20px] border border-rosewood/10 bg-white/80 px-4 py-3 text-sm text-cocoa outline-none transition placeholder:text-rosewood/35 focus:border-coral focus:bg-white",
+          error && "border-red-300 bg-red-50/30",
           className,
         )}
         {...props}
       />
+      {error ? <p className="mt-1.5 px-1 text-xs text-red-500">{error}</p> : null}
     </label>
   );
 }
@@ -125,11 +129,13 @@ export function InputField({
 export function TextareaField({
   label,
   hint,
+  error,
   className,
   ...props
 }: TextareaHTMLAttributes<HTMLTextAreaElement> & {
   label: string;
   hint?: string;
+  error?: string;
   className?: string;
 }) {
   return (
@@ -141,10 +147,12 @@ export function TextareaField({
       <textarea
         className={cn(
           "min-h-[132px] w-full rounded-[24px] border border-rosewood/10 bg-white/80 px-4 py-3 text-sm text-cocoa outline-none transition placeholder:text-rosewood/35 focus:border-coral focus:bg-white",
+          error && "border-red-300 bg-red-50/30",
           className,
         )}
         {...props}
       />
+      {error ? <p className="mt-1.5 px-1 text-xs text-red-500">{error}</p> : null}
     </label>
   );
 }

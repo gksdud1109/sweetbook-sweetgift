@@ -31,12 +31,14 @@ export default function CreatePage() {
   const router = useRouter();
   const { form, setForm, setDraft, loadSample, source } = useAlbumFlow();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, any>>({});
+  const [errorBanner, setErrorBanner] = useState<string | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
-    setError(null);
+    setErrors({});
+    setErrorBanner(null);
 
     try {
       const payload = toDraftRequest(form);
@@ -47,11 +49,23 @@ export default function CreatePage() {
       });
     } catch (submitError) {
       if (submitError instanceof ZodError) {
-        setError(submitError.issues[0]?.message ?? "입력값을 확인해 주세요.");
+        const fieldErrors: Record<string, any> = {};
+        submitError.issues.forEach((issue) => {
+          const path = issue.path;
+          let current = fieldErrors;
+          for (let i = 0; i < path.length - 1; i++) {
+            const key = path[i];
+            current[key] = current[key] || {};
+            current = current[key];
+          }
+          current[path[path.length - 1]] = issue.message;
+        });
+        setErrors(fieldErrors);
+        setErrorBanner("입력한 내용을 확인해 주세요.");
       } else if (submitError instanceof Error) {
-        setError(submitError.message);
+        setErrorBanner(submitError.message);
       } else {
-        setError("앨범 초안을 만드는 중 문제가 발생했습니다.");
+        setErrorBanner("앨범 초안을 만드는 중 문제가 발생했습니다.");
       }
     } finally {
       setIsSubmitting(false);
@@ -70,7 +84,8 @@ export default function CreatePage() {
               variant="secondary"
               onClick={() => {
                 loadSample();
-                setError(null);
+                setErrors({});
+                setErrorBanner(null);
               }}
             >
               더미 데이터 불러오기
@@ -88,7 +103,7 @@ export default function CreatePage() {
         </StatusBanner>
       ) : null}
 
-      {error ? <StatusBanner tone="error">{error}</StatusBanner> : null}
+      {errorBanner ? <StatusBanner tone="error">{errorBanner}</StatusBanner> : null}
 
       <form onSubmit={handleSubmit} className="grid gap-6">
         <Panel>
@@ -119,6 +134,7 @@ export default function CreatePage() {
                 label="기념일 날짜"
                 type="date"
                 value={form.anniversaryDate}
+                error={errors.anniversaryDate}
                 onChange={(event) =>
                   setForm((current) => ({
                     ...current,
@@ -129,6 +145,7 @@ export default function CreatePage() {
               <ImageUpload
                 label="표지 사진"
                 value={form.coverPhotoUrl}
+                error={errors.coverPhotoUrl}
                 onChange={(url) =>
                   setForm((current) => ({
                     ...current,
@@ -140,6 +157,7 @@ export default function CreatePage() {
               <InputField
                 label="보내는 사람 이름"
                 value={form.senderName}
+                error={errors.couple?.senderName}
                 onChange={(event) =>
                   setForm((current) => ({
                     ...current,
@@ -150,6 +168,7 @@ export default function CreatePage() {
               <InputField
                 label="받는 사람 이름"
                 value={form.receiverName}
+                error={errors.couple?.receiverName}
                 onChange={(event) =>
                   setForm((current) => ({
                     ...current,
@@ -162,6 +181,7 @@ export default function CreatePage() {
                 className="md:col-span-2"
                 hint="1-40자"
                 value={form.title}
+                error={errors.title}
                 onChange={(event) =>
                   setForm((current) => ({
                     ...current,
@@ -174,6 +194,7 @@ export default function CreatePage() {
                 className="md:col-span-2"
                 hint="0-80자"
                 value={form.subtitle}
+                error={errors.subtitle}
                 onChange={(event) =>
                   setForm((current) => ({
                     ...current,
@@ -186,6 +207,7 @@ export default function CreatePage() {
                 className="md:col-span-2"
                 hint="1-2000자"
                 value={form.letter}
+                error={errors.letter}
                 onChange={(event) =>
                   setForm((current) => ({
                     ...current,
@@ -210,7 +232,8 @@ export default function CreatePage() {
               variant="secondary"
               onClick={() => {
                 setForm((current) => addQuickMoments(current));
-                setError(null);
+                setErrors({});
+                setErrorBanner(null);
               }}
               disabled={form.moments.length >= 8}
             >
@@ -234,6 +257,7 @@ export default function CreatePage() {
               index={index}
               moment={moment}
               canRemove={form.moments.length > 3}
+              errors={errors.moments?.[index]}
               onRemove={() =>
                 setForm((current) => removeMoment(current, moment.id))
               }

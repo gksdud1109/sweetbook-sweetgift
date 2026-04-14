@@ -179,12 +179,15 @@ export function toDraftRequest(
     subtitle: form.subtitle.trim(),
     letter: form.letter.trim(),
     coverPhotoUrl: toAbsoluteUrl(form.coverPhotoUrl),
-    moments: form.moments.map((moment) => ({
-      date: moment.date,
-      title: moment.title.trim(),
-      body: moment.body.trim(),
-      photoUrl: toAbsoluteUrl(moment.photoUrl),
-    })),
+    moments: form.moments
+      .slice()
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((moment) => ({
+        date: moment.date,
+        title: moment.title.trim(),
+        body: moment.body.trim(),
+        photoUrl: toAbsoluteUrl(moment.photoUrl),
+      })),
   });
 }
 

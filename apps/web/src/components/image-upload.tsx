@@ -13,6 +13,7 @@ interface ImageUploadProps {
   onChange: (url: string) => void;
   className?: string;
   hint?: string;
+  error?: string;
 }
 
 export function ImageUpload({
@@ -21,10 +22,11 @@ export function ImageUpload({
   onChange,
   className,
   hint,
+  error: validationError,
 }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -35,7 +37,7 @@ export function ImageUpload({
     const localUrl = URL.createObjectURL(file);
     setPreviewUrl(localUrl);
     setIsUploading(true);
-    setError(null);
+    setUploadError(null);
 
     try {
       const uploadedUrl = await uploadFile(file);
@@ -43,7 +45,7 @@ export function ImageUpload({
       // Once uploaded, we can clear the local preview and use the real URL
       setPreviewUrl(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "업로드 실패");
+      setUploadError(err instanceof Error ? err.message : "업로드 실패");
       // Keep local preview so user sees what they tried to upload
     } finally {
       setIsUploading(false);
@@ -51,6 +53,7 @@ export function ImageUpload({
   }
 
   const displayUrl = previewUrl || value;
+  const activeError = uploadError || validationError;
 
   return (
     <div className={cn("grid gap-3", className)}>
@@ -61,8 +64,9 @@ export function ImageUpload({
 
       <div
         className={cn(
-          "relative flex aspect-video w-full flex-col items-center justify-center overflow-hidden rounded-[24px] border-2 border-dashed border-rosewood/15 bg-white/50 transition-colors hover:bg-white/80",
+          "relative flex aspect-video w-full flex-col items-center justify-center overflow-hidden rounded-[24px] border-2 border-dashed border-rosewood/15 bg-white/50 transition-colors hover:bg-white/80 focus-within:border-coral focus-within:bg-white",
           displayUrl && "border-solid border-rosewood/10 bg-white",
+          activeError && "border-red-300 bg-red-50/20",
           isUploading && "opacity-70",
         )}
       >
@@ -118,7 +122,7 @@ export function ImageUpload({
         )}
       </div>
 
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {activeError && <p className="px-1 text-xs text-red-500">{activeError}</p>}
 
       <input
         type="file"
@@ -141,11 +145,3 @@ export function ImageUpload({
     </div>
   );
 }
-
-// Helper: Button size extension in ui.tsx would be better, but let's just add a small variant here if needed
-function sizeStyles(size: "default" | "sm") {
-  return size === "sm" ? "px-3 py-1.5 text-xs" : "";
-}
-
-// Decorator to Button for size support locally if not in ui.tsx
-// (Actually we can just use className on Button from ui.tsx)

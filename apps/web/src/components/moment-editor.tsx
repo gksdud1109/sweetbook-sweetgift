@@ -8,12 +8,14 @@ export function MomentEditor({
   index,
   moment,
   canRemove,
+  errors,
   onChange,
   onRemove,
 }: {
   index: number;
   moment: EditableMoment;
   canRemove: boolean;
+  errors?: Record<string, string>;
   onChange: (patch: Partial<EditableMoment>) => void;
   onRemove: () => void;
 }) {
@@ -39,6 +41,7 @@ export function MomentEditor({
           label="추억 사진"
           value={moment.photoUrl}
           onChange={(url) => onChange({ photoUrl: url })}
+          error={errors?.photoUrl}
           hint="파일을 올리거나 URL을 입력하세요"
         />
         <div className="grid gap-4 lg:grid-cols-2">
@@ -46,17 +49,20 @@ export function MomentEditor({
             label="추억 날짜"
             type="date"
             value={moment.date}
+            error={errors?.date}
             onChange={(event) => onChange({ date: event.target.value })}
           />
           <InputField
             label="추억 제목"
             value={moment.title}
+            error={errors?.title}
             onChange={(event) => onChange({ title: event.target.value })}
           />
           <TextareaField
             label="짧은 설명"
             className="lg:col-span-2"
             value={moment.body}
+            error={errors?.body}
             onChange={(event) => onChange({ body: event.target.value })}
           />
         </div>

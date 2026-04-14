@@ -3,7 +3,7 @@
 import { startTransition, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createBook, getAlbumDraft } from "@/src/lib/api-client";
-import { PreviewBook, ModeBadge } from "@/src/components/preview-book";
+import { PreviewBook, PreviewBookSkeleton, ModeBadge } from "@/src/components/preview-book";
 import { useAlbumFlow } from "@/src/providers/album-flow-provider";
 import {
   Button,
@@ -92,11 +92,7 @@ export function PreviewPageClient() {
   }
 
   if (!hydrated || isFetching) {
-    return (
-      <Panel>
-        <p className="text-sm text-rosewood/75">앨범 미리보기를 준비 중입니다...</p>
-      </Panel>
-    );
+    return <PreviewBookSkeleton />;
   }
 
   if (!draft) {
