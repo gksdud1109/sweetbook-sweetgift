@@ -1,11 +1,15 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import multipart from "@fastify/multipart";
+import staticFiles from "@fastify/static";
+import { mkdirSync } from "fs";
 import { env } from "./env.js";
 import { registerErrorHandler } from "./plugins/error-handler.js";
 import { healthRoutes } from "./routes/health.js";
 import { albumDraftRoutes } from "./routes/album-drafts.js";
 import { bookRoutes } from "./routes/books.js";
 import { orderRoutes } from "./routes/orders.js";
+import { uploadRoutes, resolveUploadsDir } from "./routes/uploads.js";
 
 const app = Fastify({
   logger: {
@@ -19,6 +23,20 @@ await app.register(cors, {
   methods: ["GET", "POST", "OPTIONS"],
 });
 
+// Multipart support for POST /api/v1/uploads.
+// File size limit is enforced per-request inside the route (not globally here)
+// so other routes are unaffected.
+await app.register(multipart);
+
+// Serve uploaded files at /uploads/<filename>.
+// The directory is created eagerly so @fastify/static does not throw on startup.
+const uploadsDir = resolveUploadsDir();
+mkdirSync(uploadsDir, { recursive: true });
+await app.register(staticFiles, {
+  root: uploadsDir,
+  prefix: "/uploads/",
+});
+
 // ── Error handler ──────────────────────────────────────────────────────────────
 registerErrorHandler(app);
 
@@ -27,6 +45,7 @@ await app.register(healthRoutes);
 await app.register(albumDraftRoutes);
 await app.register(bookRoutes);
 await app.register(orderRoutes);
+await app.register(uploadRoutes);
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 try {
