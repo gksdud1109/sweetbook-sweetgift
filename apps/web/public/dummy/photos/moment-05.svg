@@ -1,0 +1,9 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="900" fill="#F1E4D6"/>
+  <rect x="72" y="72" width="1056" height="756" rx="44" fill="#FFFDF7"/>
+  <circle cx="286" cy="246" r="176" fill="#E0CBA9"/>
+  <circle cx="908" cy="622" r="206" fill="#F0CFC5"/>
+  <path d="M206 600C318 518 452 480 602 480C766 480 915 528 1016 602" stroke="#8E6C59" stroke-opacity="0.28" stroke-width="4"/>
+  <text x="128" y="184" fill="#8E6C59" font-size="34" letter-spacing="6">MOMENT 05</text>
+  <text x="128" y="274" fill="#3B2F2F" font-size="82" font-family="Georgia">다정한 루틴</text>
+</svg>

@@ -1,0 +1,10 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="900" fill="#E2E0E7"/>
+  <rect x="72" y="72" width="1056" height="756" rx="44" fill="#FBFBFD"/>
+  <circle cx="926" cy="260" r="172" fill="#B8BFDB"/>
+  <circle cx="308" cy="608" r="214" fill="#DCC4BF"/>
+  <path d="M208 620C327 502 463 446 617 446C769 446 900 502 998 626" stroke="#54607F" stroke-opacity="0.3" stroke-width="4"/>
+  <text x="128" y="184" fill="#58617C" font-size="34" letter-spacing="6">MOMENT 04</text>
+  <text x="128" y="274" fill="#3B2F2F" font-size="82" font-family="Georgia">비 오는 밤</text>
+</svg>
+

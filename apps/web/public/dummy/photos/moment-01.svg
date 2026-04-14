@@ -1,0 +1,10 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="900" fill="#F3E5D8"/>
+  <rect x="70" y="70" width="1060" height="760" rx="40" fill="#FFF9F1"/>
+  <circle cx="940" cy="240" r="160" fill="#F3D9D2"/>
+  <circle cx="330" cy="610" r="220" fill="#EED1B7"/>
+  <path d="M195 588C302 444 442 372 615 372C792 372 933 454 1012 596" stroke="#856666" stroke-opacity="0.35" stroke-width="4"/>
+  <text x="130" y="184" fill="#654949" font-size="34" letter-spacing="6">MOMENT 01</text>
+  <text x="128" y="274" fill="#3B2F2F" font-size="82" font-family="Georgia">첫 장면</text>
+</svg>
+

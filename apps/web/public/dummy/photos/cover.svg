@@ -1,0 +1,18 @@
+<svg width="1200" height="1400" viewBox="0 0 1200 1400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1400" fill="#6F4E4E"/>
+  <rect x="74" y="74" width="1052" height="1252" rx="46" fill="url(#paint0_linear)"/>
+  <circle cx="930" cy="260" r="180" fill="#F3D9D2" fill-opacity="0.34"/>
+  <circle cx="290" cy="1030" r="240" fill="#EFD6BF" fill-opacity="0.24"/>
+  <path d="M203 982C321 813 465 728 634 728C801 728 934 811 1031 977" stroke="#FFF8F0" stroke-opacity="0.64" stroke-width="3"/>
+  <text x="138" y="232" fill="#FFF8F0" font-size="54" letter-spacing="8">SWEETGIFT</text>
+  <text x="138" y="344" fill="#FFF8F0" font-size="122" font-family="Georgia">A Year</text>
+  <text x="138" y="470" fill="#FFF8F0" font-size="122" font-family="Georgia">Written In Us</text>
+  <text x="144" y="1138" fill="#FFF8F0" font-size="38" letter-spacing="3">ANNIVERSARY MEMORY ALBUM</text>
+  <defs>
+    <linearGradient id="paint0_linear" x1="160" y1="110" x2="1047" y2="1287" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C98B74"/>
+      <stop offset="1" stop-color="#7D5F5A"/>
+    </linearGradient>
+  </defs>
+</svg>
+

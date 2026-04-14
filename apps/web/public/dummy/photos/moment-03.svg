@@ -1,0 +1,10 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="900" fill="#EEDDD3"/>
+  <rect x="70" y="70" width="1060" height="760" rx="44" fill="#FFF9F4"/>
+  <circle cx="950" cy="230" r="154" fill="#DFA79C"/>
+  <circle cx="250" cy="650" r="240" fill="#D9C1A8"/>
+  <path d="M200 626C322 490 466 422 622 422C782 422 917 486 1001 632" stroke="#785A55" stroke-opacity="0.3" stroke-width="4"/>
+  <text x="128" y="184" fill="#7A5750" font-size="34" letter-spacing="6">MOMENT 03</text>
+  <text x="128" y="274" fill="#3B2F2F" font-size="82" font-family="Georgia">작은 여행</text>
+</svg>
+
