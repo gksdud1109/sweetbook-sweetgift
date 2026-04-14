@@ -151,8 +151,46 @@ export async function updateDraft(
 ): Promise<StoredDraft | undefined> {
   const existing = getDraft(draftId);
   if (!existing) return undefined;
+
   const updated = { ...existing, ...patch };
-  await saveDraft(updated);
+
+  // Use a direct UPDATE rather than saveDraft() to:
+  //   (a) never touch created_at — saveDraft always passes Date.now() into the
+  //       INSERT even though ON CONFLICT excludes it, which is confusing.
+  //   (b) make "update only" intent explicit — this path never inserts new rows.
+  db.prepare(`
+    UPDATE drafts SET
+      status               = @status,
+      anniversary_type     = @anniversaryType,
+      anniversary_date     = @anniversaryDate,
+      sender_name          = @senderName,
+      receiver_name        = @receiverName,
+      title                = @title,
+      subtitle             = @subtitle,
+      letter               = @letter,
+      cover_photo_url      = @coverPhotoUrl,
+      moments_json         = @momentsJson,
+      generated_pages_json = @generatedPagesJson,
+      book_id              = @bookId,
+      order_id             = @orderId
+    WHERE draft_id = @draftId
+  `).run({
+    draftId: updated.draftId,
+    status: updated.status,
+    anniversaryType: updated.anniversaryType,
+    anniversaryDate: updated.anniversaryDate,
+    senderName: updated.couple.senderName,
+    receiverName: updated.couple.receiverName,
+    title: updated.title,
+    subtitle: updated.subtitle,
+    letter: updated.letter,
+    coverPhotoUrl: updated.coverPhotoUrl,
+    momentsJson: JSON.stringify(updated.moments),
+    generatedPagesJson: JSON.stringify(updated.generatedPages),
+    bookId: updated.bookId ?? null,
+    orderId: updated.orderId ?? null,
+  });
+
   return updated;
 }
 
@@ -177,7 +215,7 @@ export function getRecentDrafts(limit = 5): RecentDraftSummary[] {
   const rows = db.prepare(`
     SELECT draft_id, title, status, cover_photo_url, created_at
     FROM drafts
-    ORDER BY created_at DESC
+    ORDER BY created_at DESC, rowid DESC
     LIMIT ?
   `).all(limit) as Array<{
     draft_id: string;

@@ -17,6 +17,9 @@ const EnvSchema = z.object({
   // Public base URL of this API server. Used to construct upload file URLs.
   // Example: http://localhost:3001  or  https://api.yourdomain.com
   BASE_URL: z.string().url().optional(),
+  // Override the data directory used for SQLite DB and file uploads.
+  // Defaults to apps/api/data/. Set to a tmpdir in tests (via tests/setup.ts).
+  DATA_DIR: z.string().optional(),
 });
 
 function loadEnv() {

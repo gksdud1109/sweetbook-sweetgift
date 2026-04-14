@@ -12,10 +12,13 @@ export async function bookRoutes(app: FastifyInstance): Promise<void> {
   //
   // Idempotency: draft.status guard returns cached bookId for repeated requests.
   //
-  // TODO (race condition): two concurrent requests with the same draftId can both
-  // pass the status guard before either calls updateDraft(), resulting in two books
-  // at SweetBook and the second bookId overwriting the first in the store.
-  // Fix requires an optimistic lock or per-draftId mutex before the await boundary.
+  // TODO (race condition): two concurrent POST /books requests with the same
+  // draftId can both pass the status guard before either calls updateDraft(),
+  // resulting in TWO books created at SweetBook and potential double-charging.
+  // The second bookId silently overwrites the first in the DB.
+  // Fix: per-draftId in-process mutex (Map<string,Promise>) or DB-level
+  // optimistic lock (UPDATE ... WHERE status='draft' returning changed rows).
+  // Out of scope for this MVP but MUST be addressed before real SweetBook billing.
   app.post("/api/v1/books", async (req, reply) => {
     const parsed = CreateBookSchema.safeParse(req.body);
     if (!parsed.success) {
