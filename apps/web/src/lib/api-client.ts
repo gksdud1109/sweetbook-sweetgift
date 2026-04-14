@@ -126,42 +126,27 @@ export async function createAlbumDraft(
       },
       albumDraftSummarySchema,
     );
-
-    try {
-      return {
-        data: await requestJson(
-          `/api/v1/album-drafts/${summary.draftId}`,
-          { method: "GET" },
-          albumDraftDetailSchema,
-        ),
-        source: "api",
-      };
-    } catch {
-      const fallbackDetail: AlbumDraftDetail = {
-        ...(await createMockAlbumDraft(payload)),
+    return {
+      data: {
         draftId: summary.draftId,
         status: summary.status,
+        anniversaryType: payload.anniversaryType,
+        anniversaryDate: payload.anniversaryDate,
+        couple: payload.couple,
         title: summary.title,
         subtitle: summary.subtitle,
+        letter: payload.letter,
         coverPhotoUrl: summary.coverPhotoUrl,
+        moments: payload.moments.map((moment, index) => ({
+          id: `moment_${index + 1}`,
+          ...moment,
+        })),
         generatedPages: summary.generatedPages,
-      };
-
-      return {
-        data: fallbackDetail,
-        source: "api",
-      };
-    }
-  } catch (postError) {
-    const normalized = normalizeError(postError);
-    if (!normalized.fallbackEligible) {
-      throw normalized;
-    }
-
-    return {
-      data: await createMockAlbumDraft(payload),
-      source: "mock",
+      },
+      source: "api",
     };
+  } catch (postError) {
+    throw normalizeError(postError);
   }
 }
 
@@ -213,15 +198,7 @@ export async function createBook(
       source: "api",
     };
   } catch (error) {
-    const normalized = normalizeError(error);
-    if (!normalized.fallbackEligible) {
-      throw normalized;
-    }
-
-    return {
-      data: await createMockBook(payload.draftId),
-      source: "mock",
-    };
+    throw normalizeError(error);
   }
 }
 
@@ -250,14 +227,6 @@ export async function createOrder(
       source: "api",
     };
   } catch (error) {
-    const normalized = normalizeError(error);
-    if (!normalized.fallbackEligible) {
-      throw normalized;
-    }
-
-    return {
-      data: await createMockOrder(payload.bookId),
-      source: "mock",
-    };
+    throw normalizeError(error);
   }
 }
