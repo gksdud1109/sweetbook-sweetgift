@@ -34,8 +34,15 @@ export function mapUpstreamError(
   const code =
     context === "book" ? "BOOK_CREATION_FAILED" : "ORDER_CREATION_FAILED";
 
-  // AbortError: our AbortController fired — request exceeded REQUEST_TIMEOUT_MS
-  if (err instanceof Error && err.name === "AbortError") {
+  // AbortError: our AbortController fired — request exceeded REQUEST_TIMEOUT_MS.
+  // DOMException (the actual type fetch throws in Node.js) does not extend Error,
+  // so check .name independently of instanceof.
+  if (
+    err != null &&
+    typeof err === "object" &&
+    "name" in err &&
+    err.name === "AbortError"
+  ) {
     return new AppError("UPSTREAM_TIMEOUT", "SweetBook API timed out.", 504);
   }
 
