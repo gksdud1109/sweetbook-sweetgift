@@ -4,7 +4,7 @@
 // Error classification uses HTTP status codes (SweetBookHttpError.status),
 // not message string patterns — avoids false matches like msg.includes("4").
 
-import { SweetBookHttpError } from "./client.js";
+import { SweetBookHttpError, SweetBookResponseError } from "./client.js";
 
 export type AppErrorCode =
   | "VALIDATION_ERROR"
@@ -33,6 +33,13 @@ export function mapUpstreamError(
 ): AppError {
   const code =
     context === "book" ? "BOOK_CREATION_FAILED" : "ORDER_CREATION_FAILED";
+
+  // Schema mismatch: SweetBook returned a shape we don't recognise (e.g. field
+  // renamed in a breaking upstream change).  Treat as a 502 upstream error so
+  // the frontend sees a stable, classifiable error code rather than a 500.
+  if (err instanceof SweetBookResponseError) {
+    return new AppError(code, err.message, 502);
+  }
 
   // AbortError: our AbortController fired — request exceeded REQUEST_TIMEOUT_MS.
   // DOMException (the actual type fetch throws in Node.js) does not extend Error,

@@ -9,7 +9,9 @@
 //     This avoids extra tables for an MVP while still being fully queryable.
 //   - order_index keeps the bookId→orderId mapping that the Orders route needs
 //     for idempotency even when the matching draft is missing.
-//   - created_at is a Unix timestamp (INTEGER) set by unixepoch() on INSERT.
+//   - created_at is a millisecond timestamp set by the application (Date.now())
+//     on INSERT.  Using application time instead of SQLite's unixepoch() gives
+//     millisecond resolution, which matters for ordering in fast test sequences.
 
 import Database from "better-sqlite3";
 import { mkdirSync } from "fs";

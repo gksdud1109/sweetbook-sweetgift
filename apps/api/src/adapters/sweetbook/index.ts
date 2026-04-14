@@ -1,4 +1,4 @@
-export { createBook, createOrder } from "./client.js";
+export { createBook, createOrder, SweetBookResponseError } from "./client.js";
 export { mapUpstreamError, AppError } from "./errors.js";
 export type { AppErrorCode } from "./errors.js";
 export type {
