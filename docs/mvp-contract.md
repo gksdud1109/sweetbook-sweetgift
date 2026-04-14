@@ -392,17 +392,23 @@ Response:
 ```json
 {
   "data": {
-    "url": "http://localhost:3001/uploads/abc123def456.jpg",
-    "filename": "abc123def456.jpg"
+    "url": "http://localhost:3001/uploads/abc123def456.webp",
+    "filename": "abc123def456.webp",
+    "printQualityWarning": false
   }
 }
 ```
 
+`printQualityWarning` is `true` when the shorter side of the image is below 800px, indicating the image may be too low-resolution for print.
+
 Error codes:
-- `VALIDATION_ERROR` — no file provided, unsupported MIME type, or file exceeds 5MB
+- `VALIDATION_ERROR` — no file provided, unsupported MIME type, magic-byte mismatch, or file exceeds 5MB
 
 Backend responsibilities:
+- Validate file magic bytes (not just declared MIME type)
 - Validate MIME type and file size before writing to disk
+- Convert image to WebP via `sharp` (quality 85, resize if either dimension > 3000px)
+- Check print quality (warn if min dimension < 800px)
 - Generate a UUID-based filename to prevent collisions
 - Save to `DATA_DIR/uploads/` (default: `apps/api/data/uploads/`)
 - Serve uploaded files statically at `/uploads/*`
@@ -411,6 +417,46 @@ Backend responsibilities:
 Notes:
 - Uploaded files are stored on local disk only — not suitable for production multi-instance deployment
 - The `data/uploads/` directory is git-ignored; reviewers must start the server before upload URLs are resolvable
+- All uploads are converted to `.webp` regardless of input format
+
+## 7.8 Recent Drafts
+
+### `GET /api/v1/recent-drafts`
+
+Purpose:
+- Return the 5 most recently created album drafts for quick resume
+
+Response:
+```json
+{
+  "data": {
+    "drafts": [
+      {
+        "draftId": "draft_01HXYZ",
+        "title": "Our 100 Days",
+        "status": "draft",
+        "coverPhotoUrl": "https://images.example.com/cover.jpg",
+        "createdAt": 1713090000
+      }
+    ]
+  }
+}
+```
+
+Notes:
+- No user identification — returns the 5 most recently created drafts in the current DB
+- `createdAt` is a Unix timestamp (seconds)
+- Returns an empty `drafts` array if no drafts exist
+
+## 7.9 Database
+
+All data is persisted in a SQLite database (`DATA_DIR/sweetgift.db`, default: `apps/api/data/sweetgift.db`).
+
+Schema is created automatically on first server startup. To reset the database, delete the file and restart the server.
+
+Tables:
+- `drafts` — stores all album drafts including generated pages and status
+- `order_index` — stores `bookId → orderId` mapping for order idempotency
 
 ## 8. Frontend and Backend Boundary
 
