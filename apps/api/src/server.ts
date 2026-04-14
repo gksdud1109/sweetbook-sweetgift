@@ -10,6 +10,7 @@ import { albumDraftRoutes } from "./routes/album-drafts.js";
 import { bookRoutes } from "./routes/books.js";
 import { orderRoutes } from "./routes/orders.js";
 import { uploadRoutes, resolveUploadsDir } from "./routes/uploads.js";
+import { recentDraftsRoutes } from "./routes/recent-drafts.js";
 
 const app = Fastify({
   logger: {
@@ -46,6 +47,7 @@ await app.register(albumDraftRoutes);
 await app.register(bookRoutes);
 await app.register(orderRoutes);
 await app.register(uploadRoutes);
+await app.register(recentDraftsRoutes);
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 try {
