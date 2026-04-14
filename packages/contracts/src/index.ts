@@ -19,6 +19,16 @@ export const anniversaryTypeSchema = z.enum([
   "custom",
 ]);
 
+export const decorationSchema = z.object({
+  id: z.string(),
+  type: z.enum(["emoji", "sticker"]),
+  value: z.string(),
+  x: z.number(), // 0-100 (percent)
+  y: z.number(), // 0-100 (percent)
+  scale: z.number().default(1),
+  rotate: z.number().default(0),
+});
+
 export const momentInputSchema = z.object({
   date: isoDateSchema,
   title: z
@@ -30,6 +40,7 @@ export const momentInputSchema = z.object({
     .min(1, "추억 설명을 입력해 주세요.")
     .max(300, "추억 설명은 300자 이하여야 합니다."),
   photoUrl: z.string().url("사진 URL 형식이 올바르지 않습니다."),
+  decorations: z.array(decorationSchema).optional().default([]),
 });
 
 export const momentSchema = momentInputSchema.extend({
@@ -42,6 +53,7 @@ export const generatedPageSchema = z.object({
   title: z.string().optional(),
   body: z.string().optional(),
   photoUrl: z.string().url().optional(),
+  decorations: z.array(decorationSchema).optional().default([]),
 });
 
 export const createAlbumDraftRequestSchema = z.object({
