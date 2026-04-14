@@ -39,6 +39,8 @@ export interface StoredDraft {
   }>;
   // bookId is set when POST /books succeeds
   bookId?: string;
+  // orderId is set when POST /orders succeeds — used for idempotency check
+  orderId?: string;
 }
 
 const store = new Map<string, StoredDraft>();
@@ -60,4 +62,13 @@ export function updateDraft(
   const updated = { ...existing, ...patch };
   store.set(draftId, updated);
   return updated;
+}
+
+// Reverse lookup: find the draft that owns a given bookId.
+// Used by POST /orders to detect duplicate submissions for the same book.
+export function getDraftByBookId(bookId: string): StoredDraft | undefined {
+  for (const draft of store.values()) {
+    if (draft.bookId === bookId) return draft;
+  }
+  return undefined;
 }

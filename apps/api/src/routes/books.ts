@@ -35,9 +35,12 @@ export async function bookRoutes(app: FastifyInstance): Promise<void> {
       throw new AppError("NOT_FOUND", `Draft '${draftId}' not found.`, 404);
     }
 
-    // Guard: if this draft already has a book, return the existing bookId
-    // rather than creating a duplicate at SweetBook.
-    if (draft.status === "book_created" && draft.bookId) {
+    // Guard: if this draft already has a book (or is already ordered),
+    // return the cached bookId rather than creating a duplicate at SweetBook.
+    if (
+      (draft.status === "book_created" || draft.status === "ordered") &&
+      draft.bookId
+    ) {
       return reply.send({
         data: {
           draftId: draft.draftId,

@@ -18,9 +18,20 @@ import type {
   SweetBookOrderPayload,
   SweetBookOrderResponse,
 } from "./types.js";
-import { AppError } from "./errors.js";
 
 const REQUEST_TIMEOUT_MS = 10_000;
+
+// Carries the HTTP status code so mapUpstreamError can branch on numbers,
+// not on message string patterns.
+export class SweetBookHttpError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly body: string,
+  ) {
+    super(`SweetBook HTTP ${status}`);
+    this.name = "SweetBookHttpError";
+  }
+}
 
 async function request<T>(
   method: "GET" | "POST",
@@ -41,16 +52,13 @@ async function request<T>(
       body: body !== undefined ? JSON.stringify(body) : undefined,
       signal: controller.signal,
     });
-  } catch (err) {
-    // Network-level errors (DNS, connection refused, AbortError from timeout)
-    throw err;
   } finally {
     clearTimeout(timer);
   }
 
   if (!response.ok) {
     const text = await response.text().catch(() => "");
-    throw new Error(`SweetBook HTTP ${response.status}: ${text}`);
+    throw new SweetBookHttpError(response.status, text);
   }
 
   return response.json() as Promise<T>;

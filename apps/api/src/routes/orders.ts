@@ -4,15 +4,18 @@ import {
   createOrder,
   mapUpstreamError,
 } from "../adapters/sweetbook/index.js";
+import { getDraftByBookId, updateDraft } from "../store/draft-store.js";
 
 export async function orderRoutes(app: FastifyInstance): Promise<void> {
   // POST /api/v1/orders
   //
-  // Idempotency concern:
-  //   A retry of this endpoint will create a duplicate order at SweetBook.
-  //   For production, require an idempotency key header and persist the
-  //   orderId keyed on it.
-  //   TODO: accept X-Idempotency-Key and store order result in draft store.
+  // Idempotency: if the same bookId was already successfully ordered,
+  // return the cached orderId without calling SweetBook again.
+  // This guards against double-click, network retry, and response-loss retries.
+  //
+  // Limitation: the draft store is in-memory — idempotency is lost on restart.
+  // TODO: persist orderId in a durable store and add X-Idempotency-Key support
+  //       for cross-process safety.
   app.post("/api/v1/orders", async (req, reply) => {
     const parsed = CreateOrderSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -26,6 +29,18 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
     }
 
     const { bookId, recipient } = parsed.data;
+
+    // Idempotency guard: return cached result if this book was already ordered
+    const existingDraft = getDraftByBookId(bookId);
+    if (existingDraft?.status === "ordered" && existingDraft.orderId) {
+      return reply.send({
+        data: {
+          orderId: existingDraft.orderId,
+          bookId,
+          status: "ordered",
+        },
+      });
+    }
 
     let upstream;
     try {
@@ -41,6 +56,14 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
       });
     } catch (err) {
       throw mapUpstreamError(err, "order");
+    }
+
+    // Persist orderId so retries return the same result
+    if (existingDraft) {
+      updateDraft(existingDraft.draftId, {
+        status: "ordered",
+        orderId: upstream.id,
+      });
     }
 
     return reply.status(201).send({
