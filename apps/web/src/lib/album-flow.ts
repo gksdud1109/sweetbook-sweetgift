@@ -66,6 +66,23 @@ export function createInitialFormState(): AlbumDraftFormState {
   };
 }
 
+export function cloneFormState(form: AlbumDraftFormState): AlbumDraftFormState {
+  return {
+    ...form,
+    moments: form.moments.map((moment) => ({ ...moment })),
+  };
+}
+
+export function createInitialFlowState(): PersistedFlow {
+  return {
+    form: createInitialFormState(),
+    draft: null,
+    book: null,
+    order: null,
+    source: "mock",
+  };
+}
+
 export function createInitialOrderFormState(
   recipientName = "",
 ): OrderFormState {

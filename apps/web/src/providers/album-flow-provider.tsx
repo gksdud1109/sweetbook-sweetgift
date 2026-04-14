@@ -14,7 +14,8 @@ import type {
   CreateOrderResponse,
 } from "@sweetgift/contracts";
 import {
-  createInitialFormState,
+  cloneFormState,
+  createInitialFlowState,
   type AlbumDraftFormState,
   type PersistedFlow,
   type RuntimeSource,
@@ -42,13 +43,7 @@ const AlbumFlowContext = createContext<AlbumFlowContextValue | null>(null);
 
 export function AlbumFlowProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
-  const [flow, setFlow] = useState<PersistedFlow>({
-    form: createInitialFormState(),
-    draft: null,
-    book: null,
-    order: null,
-    source: "mock",
-  });
+  const [flow, setFlow] = useState<PersistedFlow>(createInitialFlowState());
 
   useEffect(() => {
     setFlow(readFlowSnapshot());
@@ -77,10 +72,13 @@ export function AlbumFlowProvider({ children }: { children: ReactNode }) {
         }));
       },
       loadSample: () => {
-        setFlow((current) => ({
-          ...current,
-          form: sampleDraftForm,
-        }));
+        setFlow({
+          form: cloneFormState(sampleDraftForm),
+          draft: null,
+          book: null,
+          order: null,
+          source: "mock",
+        });
       },
       setDraft: (draft, source) => {
         setFlow((current) => ({
@@ -125,13 +123,7 @@ export function AlbumFlowProvider({ children }: { children: ReactNode }) {
       },
       resetFlow: () => {
         clearFlowSnapshot();
-        setFlow({
-          form: createInitialFormState(),
-          draft: null,
-          book: null,
-          order: null,
-          source: "mock",
-        });
+        setFlow(createInitialFlowState());
       },
     }),
     [flow, hydrated],

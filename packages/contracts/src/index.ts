@@ -1,5 +1,17 @@
 import { z } from "zod";
 
+const isoDateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "날짜 형식은 YYYY-MM-DD여야 합니다.");
+
+const phoneSchema = z
+  .string()
+  .regex(/^0\d{1,2}-\d{3,4}-\d{4}$/, "연락처 형식은 010-0000-0000 이어야 합니다.");
+
+const zipCodeSchema = z
+  .string()
+  .regex(/^\d{5}$/, "우편번호는 5자리 숫자여야 합니다.");
+
 export const anniversaryTypeSchema = z.enum([
   "100days",
   "200days",
@@ -8,7 +20,7 @@ export const anniversaryTypeSchema = z.enum([
 ]);
 
 export const momentInputSchema = z.object({
-  date: z.string().min(1, "추억 날짜를 입력해 주세요."),
+  date: isoDateSchema,
   title: z
     .string()
     .min(1, "추억 제목을 입력해 주세요.")
@@ -34,7 +46,7 @@ export const generatedPageSchema = z.object({
 
 export const createAlbumDraftRequestSchema = z.object({
   anniversaryType: anniversaryTypeSchema,
-  anniversaryDate: z.string().min(1, "기념일 날짜를 입력해 주세요."),
+  anniversaryDate: isoDateSchema,
   couple: z.object({
     senderName: z
       .string()
@@ -99,10 +111,7 @@ export const recipientSchema = z.object({
     .string()
     .min(1, "수령인 이름을 입력해 주세요.")
     .max(30, "수령인 이름은 30자 이하여야 합니다."),
-  phone: z
-    .string()
-    .min(1, "연락처를 입력해 주세요.")
-    .max(30, "연락처는 30자 이하여야 합니다."),
+  phone: phoneSchema,
   address1: z
     .string()
     .min(1, "기본 주소를 입력해 주세요.")
@@ -111,10 +120,7 @@ export const recipientSchema = z.object({
     .string()
     .max(120, "상세 주소는 120자 이하여야 합니다.")
     .default(""),
-  zipCode: z
-    .string()
-    .min(1, "우편번호를 입력해 주세요.")
-    .max(12, "우편번호는 12자 이하여야 합니다."),
+  zipCode: zipCodeSchema,
 });
 
 export const createOrderRequestSchema = z.object({
