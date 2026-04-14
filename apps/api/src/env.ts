@@ -14,6 +14,9 @@ const EnvSchema = z.object({
     .string()
     .transform((v) => v === "true")
     .default("false"),
+  // Public base URL of this API server. Used to construct upload file URLs.
+  // Example: http://localhost:3001  or  https://api.yourdomain.com
+  BASE_URL: z.string().url().optional(),
 });
 
 function loadEnv() {
