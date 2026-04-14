@@ -12,6 +12,10 @@
 // - Mock mode: set SWEETBOOK_MOCK=true to skip real calls (local dev / CI).
 
 import { env } from "../../env.js";
+import {
+  SweetBookBookResponseSchema,
+  SweetBookOrderResponseSchema,
+} from "./types.js";
 import type {
   SweetBookBookPayload,
   SweetBookBookResponse,
@@ -61,6 +65,7 @@ async function request<T>(
     throw new SweetBookHttpError(response.status, text);
   }
 
+  // Return raw JSON; callers validate with zod schemas
   return response.json() as Promise<T>;
 }
 
@@ -72,7 +77,10 @@ export async function createBook(
   if (env.SWEETBOOK_MOCK) {
     return mockCreateBook(payload);
   }
-  return request<SweetBookBookResponse>("POST", "/books", payload);
+  const raw = await request<unknown>("POST", "/books", payload);
+  // Runtime validation: catch upstream shape changes (e.g. "id" → "bookId")
+  // before they silently corrupt our draft store.
+  return SweetBookBookResponseSchema.parse(raw);
 }
 
 // ── Orders ────────────────────────────────────────────────────────────────────
@@ -83,7 +91,8 @@ export async function createOrder(
   if (env.SWEETBOOK_MOCK) {
     return mockCreateOrder(payload);
   }
-  return request<SweetBookOrderResponse>("POST", "/orders", payload);
+  const raw = await request<unknown>("POST", "/orders", payload);
+  return SweetBookOrderResponseSchema.parse(raw);
 }
 
 // ── Mock implementations ──────────────────────────────────────────────────────
