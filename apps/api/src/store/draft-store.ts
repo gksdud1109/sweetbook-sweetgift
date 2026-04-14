@@ -15,6 +15,17 @@ import { db } from "./db.js";
 
 // ── Public types ──────────────────────────────────────────────────────────────
 
+/** A single sticker / decoration overlay element applied to a page or cover. */
+export interface Decoration {
+  id: string;
+  type: string;
+  value: string;
+  x: number;
+  y: number;
+  scale: number;
+  rotate: number;
+}
+
 export interface StoredDraft {
   draftId: string;
   status: "draft" | "book_created" | "ordered";
@@ -28,12 +39,14 @@ export interface StoredDraft {
   subtitle: string;
   letter: string;
   coverPhotoUrl: string;
+  coverDecorations?: Decoration[];
   moments: Array<{
     id: string;
     date: string;
     title: string;
     body: string;
     photoUrl: string;
+    decorations?: Decoration[];
   }>;
   generatedPages: Array<{
     pageNumber: number;
@@ -41,6 +54,7 @@ export interface StoredDraft {
     title?: string;
     body?: string;
     photoUrl?: string;
+    decorations?: Decoration[];
   }>;
   bookId?: string;
   orderId?: string;
@@ -61,6 +75,7 @@ interface DraftRow {
   cover_photo_url: string;
   moments_json: string;
   generated_pages_json: string;
+  cover_decorations_json: string | null;
   book_id: string | null;
   order_id: string | null;
   created_at: number;
@@ -82,6 +97,9 @@ function rowToDraft(row: DraftRow): StoredDraft {
     subtitle: row.subtitle,
     letter: row.letter,
     coverPhotoUrl: row.cover_photo_url,
+    ...(row.cover_decorations_json != null
+      ? { coverDecorations: JSON.parse(row.cover_decorations_json) }
+      : {}),
     moments: JSON.parse(row.moments_json),
     generatedPages: JSON.parse(row.generated_pages_json),
     ...(row.book_id != null ? { bookId: row.book_id } : {}),
@@ -97,27 +115,28 @@ export async function saveDraft(draft: StoredDraft): Promise<void> {
       draft_id, status, anniversary_type, anniversary_date,
       sender_name, receiver_name, title, subtitle, letter,
       cover_photo_url, moments_json, generated_pages_json,
-      book_id, order_id, created_at
+      cover_decorations_json, book_id, order_id, created_at
     ) VALUES (
       @draftId, @status, @anniversaryType, @anniversaryDate,
       @senderName, @receiverName, @title, @subtitle, @letter,
       @coverPhotoUrl, @momentsJson, @generatedPagesJson,
-      @bookId, @orderId, @createdAt
+      @coverDecorationsJson, @bookId, @orderId, @createdAt
     )
     ON CONFLICT(draft_id) DO UPDATE SET
-      status               = excluded.status,
-      anniversary_type     = excluded.anniversary_type,
-      anniversary_date     = excluded.anniversary_date,
-      sender_name          = excluded.sender_name,
-      receiver_name        = excluded.receiver_name,
-      title                = excluded.title,
-      subtitle             = excluded.subtitle,
-      letter               = excluded.letter,
-      cover_photo_url      = excluded.cover_photo_url,
-      moments_json         = excluded.moments_json,
-      generated_pages_json = excluded.generated_pages_json,
-      book_id              = excluded.book_id,
-      order_id             = excluded.order_id
+      status                 = excluded.status,
+      anniversary_type       = excluded.anniversary_type,
+      anniversary_date       = excluded.anniversary_date,
+      sender_name            = excluded.sender_name,
+      receiver_name          = excluded.receiver_name,
+      title                  = excluded.title,
+      subtitle               = excluded.subtitle,
+      letter                 = excluded.letter,
+      cover_photo_url        = excluded.cover_photo_url,
+      moments_json           = excluded.moments_json,
+      generated_pages_json   = excluded.generated_pages_json,
+      cover_decorations_json = excluded.cover_decorations_json,
+      book_id                = excluded.book_id,
+      order_id               = excluded.order_id
       -- created_at is intentionally excluded: preserve original creation time on update
   `).run({
     draftId: draft.draftId,
@@ -132,6 +151,9 @@ export async function saveDraft(draft: StoredDraft): Promise<void> {
     coverPhotoUrl: draft.coverPhotoUrl,
     momentsJson: JSON.stringify(draft.moments),
     generatedPagesJson: JSON.stringify(draft.generatedPages),
+    coverDecorationsJson: draft.coverDecorations != null
+      ? JSON.stringify(draft.coverDecorations)
+      : null,
     bookId: draft.bookId ?? null,
     orderId: draft.orderId ?? null,
     createdAt: Date.now(), // milliseconds — monotonic within a process, survives fast test sequences
@@ -160,19 +182,20 @@ export async function updateDraft(
   //   (b) make "update only" intent explicit — this path never inserts new rows.
   db.prepare(`
     UPDATE drafts SET
-      status               = @status,
-      anniversary_type     = @anniversaryType,
-      anniversary_date     = @anniversaryDate,
-      sender_name          = @senderName,
-      receiver_name        = @receiverName,
-      title                = @title,
-      subtitle             = @subtitle,
-      letter               = @letter,
-      cover_photo_url      = @coverPhotoUrl,
-      moments_json         = @momentsJson,
-      generated_pages_json = @generatedPagesJson,
-      book_id              = @bookId,
-      order_id             = @orderId
+      status                 = @status,
+      anniversary_type       = @anniversaryType,
+      anniversary_date       = @anniversaryDate,
+      sender_name            = @senderName,
+      receiver_name          = @receiverName,
+      title                  = @title,
+      subtitle               = @subtitle,
+      letter                 = @letter,
+      cover_photo_url        = @coverPhotoUrl,
+      moments_json           = @momentsJson,
+      generated_pages_json   = @generatedPagesJson,
+      cover_decorations_json = @coverDecorationsJson,
+      book_id                = @bookId,
+      order_id               = @orderId
     WHERE draft_id = @draftId
   `).run({
     draftId: updated.draftId,
@@ -187,6 +210,9 @@ export async function updateDraft(
     coverPhotoUrl: updated.coverPhotoUrl,
     momentsJson: JSON.stringify(updated.moments),
     generatedPagesJson: JSON.stringify(updated.generatedPages),
+    coverDecorationsJson: updated.coverDecorations != null
+      ? JSON.stringify(updated.coverDecorations)
+      : null,
     bookId: updated.bookId ?? null,
     orderId: updated.orderId ?? null,
   });

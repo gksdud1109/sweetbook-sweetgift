@@ -41,6 +41,7 @@ export async function albumDraftRoutes(app: FastifyInstance): Promise<void> {
         title: m.title,
         body: m.body,
         photoUrl: m.photoUrl,
+        ...(m.decorations ? { decorations: m.decorations } : {}),
       })),
       {
         pageNumber: sortedMoments.length + 2,
@@ -65,6 +66,7 @@ export async function albumDraftRoutes(app: FastifyInstance): Promise<void> {
       subtitle: input.subtitle,
       letter: input.letter,
       coverPhotoUrl: input.coverPhotoUrl,
+      coverDecorations: input.coverDecorations,
       moments: sortedMoments.map((m, i) => ({
         id: `moment_${i + 1}`,
         ...m,
@@ -81,6 +83,7 @@ export async function albumDraftRoutes(app: FastifyInstance): Promise<void> {
         title: draft.title,
         subtitle: draft.subtitle,
         coverPhotoUrl: draft.coverPhotoUrl,
+        coverDecorations: draft.coverDecorations ?? [],
         generatedPages: draft.generatedPages,
       },
     });
@@ -108,6 +111,7 @@ export async function albumDraftRoutes(app: FastifyInstance): Promise<void> {
           subtitle: draft.subtitle,
           letter: draft.letter,
           coverPhotoUrl: draft.coverPhotoUrl,
+          coverDecorations: draft.coverDecorations ?? [],
           moments: draft.moments,
           generatedPages: draft.generatedPages,
         },

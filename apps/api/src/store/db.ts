@@ -5,8 +5,10 @@
 // fine for a single-process server — SQLite WAL mode handles concurrent reads.
 //
 // Schema notes:
-//   - moments and generated_pages are stored as JSON strings.
+//   - moments, generated_pages, and cover_decorations are stored as JSON strings.
 //     This avoids extra tables for an MVP while still being fully queryable.
+//   - cover_decorations_json stores the sticker/decoration overlay applied to the
+//     album cover. Each decoration: { id, type, value, x, y, scale, rotate }.
 //   - order_index keeps the bookId→orderId mapping that the Orders route needs
 //     for idempotency even when the matching draft is missing.
 //   - created_at is a millisecond timestamp set by the application (Date.now())
@@ -48,12 +50,13 @@ function openDatabase(): Database.Database {
       title                 TEXT    NOT NULL,
       subtitle              TEXT    NOT NULL,
       letter                TEXT    NOT NULL,
-      cover_photo_url       TEXT    NOT NULL,
-      moments_json          TEXT    NOT NULL,
-      generated_pages_json  TEXT    NOT NULL,
-      book_id               TEXT,
-      order_id              TEXT,
-      created_at            INTEGER NOT NULL  -- milliseconds since epoch, set by application
+      cover_photo_url          TEXT    NOT NULL,
+      moments_json             TEXT    NOT NULL,
+      generated_pages_json     TEXT    NOT NULL,
+      cover_decorations_json   TEXT,
+      book_id                  TEXT,
+      order_id                 TEXT,
+      created_at               INTEGER NOT NULL  -- milliseconds since epoch, set by application
     );
 
     CREATE TABLE IF NOT EXISTS order_index (
@@ -61,6 +64,15 @@ function openDatabase(): Database.Database {
       order_id  TEXT NOT NULL
     );
   `);
+
+  // Migrate existing databases: add cover_decorations_json if it doesn't exist yet.
+  // SQLite ALTER TABLE does not support IF NOT EXISTS — use try/catch instead.
+  // This is safe: the only error thrown here is "duplicate column name".
+  try {
+    database.exec(`ALTER TABLE drafts ADD COLUMN cover_decorations_json TEXT`);
+  } catch {
+    // column already present — no-op
+  }
 
   return database;
 }
