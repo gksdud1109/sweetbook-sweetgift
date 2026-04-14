@@ -49,7 +49,7 @@ export function PreviewPageClient() {
           setError(
             fetchError instanceof Error
               ? fetchError.message
-              : "초안 정보를 불러오지 못했습니다.",
+              : "앨범 정보를 성공적으로 불러오지 못했습니다.",
           );
         }
       } finally {
@@ -84,7 +84,7 @@ export function PreviewPageClient() {
       setError(
         bookError instanceof Error
           ? bookError.message
-          : "책 생성 요청에 실패했습니다.",
+          : "인쇄용 도서 제작 요청 중 오류가 발생했습니다.",
       );
     } finally {
       setIsCreatingBook(false);
@@ -92,54 +92,61 @@ export function PreviewPageClient() {
   }
 
   if (!hydrated || isFetching) {
-    return <PreviewBookSkeleton />;
+    return (
+      <div className="py-20">
+        <PreviewBookSkeleton />
+      </div>
+    );
   }
 
   if (!draft) {
     return (
-      <div className="grid gap-6">
+      <div className="grid gap-12 py-20">
         <PageHero
-          eyebrow="Album Preview"
-          title="먼저 초안을 만들어야 미리보기를 볼 수 있습니다."
-          body="Create Album 화면에서 직접 입력하거나 더미 데이터를 불러오면 generatedPages 기반 미리보기가 바로 생성됩니다."
-          actions={<ButtonLink href="/create">앨범 만들러 가기</ButtonLink>}
+          eyebrow="Curated Preview"
+          title="앨범 초안이 아직 준비되지 않았습니다."
+          body="나만의 소중한 기록을 먼저 담아보세요. 편집기에서 사진과 편지를 입력하면 실시간으로 정교하게 구성된 앨범 프리뷰가 생성됩니다."
+          actions={<ButtonLink href="/create" className="bg-brand-primary shadow-liquid">기록 시작하기</ButtonLink>}
         />
-        {error ? <StatusBanner tone="error">{error}</StatusBanner> : null}
+        {error ? <StatusBanner tone="error" className="rounded-2xl">{error}</StatusBanner> : null}
       </div>
     );
   }
 
   return (
-    <div className="grid gap-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="grid gap-12 pb-20 relative pt-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
         <PageHero
-          eyebrow="Album Preview"
-          title="핵심 화면은 Preview입니다. 생성된 페이지를 그대로 검토한 뒤 책 생성을 진행합니다."
-          body="표지, 추억 페이지, 편지, 마무리 페이지까지 모두 `generatedPages` 렌더링으로 구성했습니다. 백엔드 연결 시 실제 계약 응답을 우선 사용하고, 준비 전에는 mock fallback으로 데모가 이어집니다."
+          eyebrow="Preview & Review"
+          title="당신의 소중한 기록이 작품이 되는 순간."
+          body="에디토리얼 레이아웃으로 재구성된 앨범을 확인해보세요. 모든 페이지는 실제 인쇄 공격에 맞춰 정밀하게 설계되었습니다. 만족스러우시다면 인쇄 공정으로 전달할 수 있습니다."
         />
-        <ModeBadge source={source} />
+        <div className="flex flex-col items-end gap-4">
+          <ModeBadge source={source} />
+          {source === "api" ? (
+            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-lg">Realtime Backend Sync Active</p>
+          ) : (
+            <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest bg-amber-50 px-3 py-1 rounded-lg">Independent Review Ready</p>
+          )}
+        </div>
       </div>
 
-      {source === "mock" ? (
-        <StatusBanner>
-          현재는 mock fallback 결과를 보고 있습니다. 백엔드가 준비되면 같은 버튼으로 `POST /api/v1/books`까지 실제 호출됩니다.
-        </StatusBanner>
-      ) : (
-        <StatusBanner tone="success">
-          백엔드 계약 응답으로 미리보기를 렌더링하고 있습니다.
-        </StatusBanner>
-      )}
+      {error ? <StatusBanner tone="error" className="rounded-2xl shadow-sm">{error}</StatusBanner> : null}
 
-      {error ? <StatusBanner tone="error">{error}</StatusBanner> : null}
+      <div className="mt-12">
+        <PreviewBook draft={draft} />
+      </div>
 
-      <PreviewBook draft={draft} />
-
-      <div className="flex flex-wrap justify-end gap-3">
-        <ButtonLink href="/create" variant="secondary">
-          내용 수정하기
+      <div className="flex flex-wrap items-center justify-end gap-6 pt-12 border-t border-slate-100">
+        <ButtonLink href="/create" variant="secondary" className="px-8 py-4 rounded-2xl border-slate-200 text-slate-500 hover:bg-slate-50">
+          편집기로 돌아가기
         </ButtonLink>
-        <Button onClick={handleCreateBook} disabled={isCreatingBook}>
-          {isCreatingBook ? "책 생성 요청 중..." : "책 생성 요청"}
+        <Button 
+          onClick={handleCreateBook} 
+          disabled={isCreatingBook}
+          className="px-12 py-4 rounded-2xl bg-brand-dark text-white shadow-liquid hover:bg-brand-primary transition-all scale-105 active:scale-95"
+        >
+          {isCreatingBook ? "전송 중..." : "실물 도서로 제작하기"}
         </Button>
       </div>
     </div>

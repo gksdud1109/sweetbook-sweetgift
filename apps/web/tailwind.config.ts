@@ -9,31 +9,28 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        blush: "#f3d9d2",
-        rosewood: "#6f4e4e",
-        cocoa: "#3b2f2f",
-        cream: "#f8f3ea",
-        oat: "#efe2cf",
-        coral: "#d97c62",
+        brand: {
+          primary: "#6366f1", // Indigo
+          secondary: "#a855f7", // Purple
+          accent: "#f43f5e", // Rose/Coral
+          light: "#e0e7ff",
+          dark: "#1e1b4b",
+        },
+        surface: {
+          50: "#fafafa",
+          100: "#f4f4f5",
+          200: "#e4e4e7",
+          glass: "rgba(255, 255, 255, 0.7)",
+        }
       },
       boxShadow: {
-        album: "0 30px 80px rgba(62, 36, 36, 0.14)",
-      },
-      backgroundImage: {
-        grain:
-          "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.7), transparent 22%), radial-gradient(circle at 80% 10%, rgba(255,255,255,0.35), transparent 18%), radial-gradient(circle at 50% 80%, rgba(217,124,98,0.08), transparent 26%)",
+        liquid: "0 20px 50px rgba(99, 102, 241, 0.15)",
+        glass: "0 8px 32px 0 rgba(31, 38, 135, 0.07)",
       },
       fontFamily: {
-        serif: [
-          "var(--font-serif)",
-          "Iowan Old Style",
-          "Palatino Linotype",
-          "Book Antiqua",
-          "Georgia",
-          "serif",
-        ],
         sans: [
           "var(--font-sans)",
+          "Pretendard JP",
           "Pretendard",
           "-apple-system",
           "BlinkMacSystemFont",
@@ -44,26 +41,36 @@ const config: Config = {
           "Apple SD Gothic Neo",
           "Noto Sans KR",
           "Malgun Gothic",
-          "Apple Color Emoji",
-          "Segoe UI Emoji",
-          "Segoe UI Symbol",
           "sans-serif",
+        ],
+        serif: [
+          "var(--font-serif)",
+          "Iowan Old Style",
+          "Palatino Linotype",
+          "Georgia",
+          "serif",
         ],
       },
       keyframes: {
         rise: {
-          "0%": {
-            opacity: "0",
-            transform: "translateY(18px)",
-          },
-          "100%": {
-            opacity: "1",
-            transform: "translateY(0)",
-          },
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        blob: {
+          "0%": { transform: "translate(0px, 0px) scale(1)" },
+          "33%": { transform: "translate(30px, -50px) scale(1.1)" },
+          "66%": { transform: "translate(-20px, 20px) scale(0.9)" },
+          "100%": { transform: "translate(0px, 0px) scale(1)" },
+        }
       },
       animation: {
-        rise: "rise 650ms ease-out both",
+        rise: "rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both",
+        float: "float 3s ease-in-out infinite",
+        blob: "blob 7s infinite",
       },
     },
   },
@@ -71,4 +78,3 @@ const config: Config = {
 };
 
 export default config;
-

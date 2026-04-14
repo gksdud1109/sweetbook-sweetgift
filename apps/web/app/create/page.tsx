@@ -63,11 +63,11 @@ export default function CreatePage() {
           current[path[path.length - 1]] = issue.message;
         });
         setErrors(fieldErrors);
-        setErrorBanner("입력한 내용을 확인해 주세요.");
+        setErrorBanner("입력한 내용을 다시 확인해 주세요.");
       } else if (submitError instanceof Error) {
         setErrorBanner(submitError.message);
       } else {
-        setErrorBanner("앨범 초안을 만드는 중 문제가 발생했습니다.");
+        setErrorBanner("앨범 초안을 생성하는 중 문제가 발생했습니다.");
       }
     } finally {
       setIsSubmitting(false);
@@ -75,46 +75,41 @@ export default function CreatePage() {
   }
 
   return (
-    <div className="grid gap-8">
-      <PageHero
-        eyebrow="Create Album"
-        title="가장 중요한 사진 몇 장만 던져주세요. 나머지는 저희가 채워드릴게요."
-        body="anniversary, names, title, letter만 정하고, 추억 사진들은 한 번에 드래그 앤 드롭하세요. 사진 속 날짜를 분석하고 어울리는 문구를 자동으로 추천해 드립니다."
-        actions={
-          <>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                loadSample();
-                setErrors({});
-                setErrorBanner(null);
-              }}
-            >
-              샘플 데이터로 채우기
-            </Button>
-              <ButtonLink href="/" variant="ghost">
-                랜딩으로 돌아가기
-              </ButtonLink>
-          </>
-        }
-      />
+    <div className="grid gap-12 pb-20">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <PageHero
+          eyebrow="Creation Workspace"
+          title="추억을 빚어내는 공간."
+          body="기념일의 정보와 사진을 담아주세요. AI가 날짜를 분석하고 가장 아름다운 레이아웃을 제안합니다."
+        />
+        <div className="flex gap-3">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              loadSample();
+              setErrors({});
+              setErrorBanner(null);
+            }}
+            className="rounded-2xl border-slate-200 text-slate-500 hover:bg-white/60 backdrop-blur-sm"
+          >
+            샘플 데이터 로드
+          </Button>
+          <ButtonLink href="/" variant="ghost" className="text-slate-400">
+            취소
+          </ButtonLink>
+        </div>
+      </div>
 
-      {source === "mock" ? (
-        <StatusBanner>
-          현재 앱은 mock fallback을 기본값으로 유지합니다. `NEXT_PUBLIC_API_BASE_URL`이 연결되면 실제 API를 우선 호출합니다.
-        </StatusBanner>
-      ) : null}
+      {errorBanner ? <StatusBanner tone="error" className="rounded-2xl shadow-sm">{errorBanner}</StatusBanner> : null}
 
-      {errorBanner ? <StatusBanner tone="error">{errorBanner}</StatusBanner> : null}
-
-      <form onSubmit={handleSubmit} className="grid gap-6">
-        <Panel>
-          <div className="grid gap-6">
-            <div>
-              <p className="text-xs uppercase tracking-[0.34em] text-rosewood/60">
-                Anniversary Context
+      <form onSubmit={handleSubmit} className="grid gap-12">
+        <Panel className="p-10 rounded-[48px] bg-white/40 backdrop-blur-xl border-none shadow-glass">
+          <div className="grid gap-10">
+            <section>
+              <p className="text-[11px] font-black uppercase tracking-[0.4em] text-brand-primary/40 mb-6">
+                01. Context Settings
               </p>
-              <div className="mt-4 flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-3">
                 {anniversaryOptions.map((option) => (
                   <StepPill
                     key={option}
@@ -125,13 +120,15 @@ export default function CreatePage() {
                         anniversaryType: option,
                       }))
                     }
+                    className={form.anniversaryType === option ? "bg-brand-primary text-white border-brand-primary shadow-lg scale-105" : ""}
                   >
                     {labelForAnniversaryType(option)}
                   </StepPill>
                 ))}
               </div>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
+            </section>
+
+            <div className="grid gap-8 md:grid-cols-2">
               <InputField
                 label="기념일 날짜"
                 type="date"
@@ -143,28 +140,31 @@ export default function CreatePage() {
                     anniversaryDate: event.target.value,
                   }))
                 }
+                className="rounded-2xl border-slate-100 focus:border-brand-primary"
               />
               
-              <DecorationEditor
-                decorations={form.coverDecorations || []}
-                onChange={(coverDecorations) => setForm(c => ({ ...c, coverDecorations }))}
-              >
-                <ImageUpload
-                  label="앨범 표지"
-                  value={form.coverPhotoUrl}
-                  error={errors.coverPhotoUrl}
-                  onChange={(url) =>
-                    setForm((current) => ({
-                      ...current,
-                      coverPhotoUrl: url,
-                    }))
-                  }
-                  hint="파일 업로드 또는 URL 입력"
-                />
-              </DecorationEditor>
+              <div className="md:row-span-3">
+                <DecorationEditor
+                  decorations={form.coverDecorations || []}
+                  onChange={(coverDecorations) => setForm(c => ({ ...c, coverDecorations }))}
+                >
+                  <ImageUpload
+                    label="앨범 메인 표지"
+                    value={form.coverPhotoUrl}
+                    error={errors.coverPhotoUrl}
+                    onChange={(url) =>
+                      setForm((current) => ({
+                        ...current,
+                        coverPhotoUrl: url,
+                      }))
+                    }
+                    className="aspect-[4/5] rounded-[32px] overflow-hidden border-2 border-dashed border-slate-200"
+                  />
+                </DecorationEditor>
+              </div>
 
               <InputField
-                label="보내는 사람 이름"
+                label="보내는 이"
                 value={form.senderName}
                 error={errors.couple?.senderName}
                 onChange={(event) =>
@@ -173,9 +173,10 @@ export default function CreatePage() {
                     senderName: event.target.value,
                   }))
                 }
+                className="rounded-2xl border-slate-100"
               />
               <InputField
-                label="받는 사람 이름"
+                label="받는 이"
                 value={form.receiverName}
                 error={errors.couple?.receiverName}
                 onChange={(event) =>
@@ -184,11 +185,12 @@ export default function CreatePage() {
                     receiverName: event.target.value,
                   }))
                 }
+                className="rounded-2xl border-slate-100"
               />
               <InputField
-                label="앨범 제목"
-                className="md:col-span-2"
-                hint="1-40자"
+                label="앨범 타이틀"
+                className="md:col-span-1 rounded-2xl border-slate-100"
+                placeholder="우리의 열두 달"
                 value={form.title}
                 error={errors.title}
                 onChange={(event) =>
@@ -199,9 +201,9 @@ export default function CreatePage() {
                 }
               />
               <InputField
-                label="부제"
-                className="md:col-span-2"
-                hint="0-80자"
+                label="서브 타이틀"
+                className="md:col-span-2 rounded-2xl border-slate-100"
+                placeholder="가장 찬란했던 계절의 기록"
                 value={form.subtitle}
                 error={errors.subtitle}
                 onChange={(event) =>
@@ -212,9 +214,9 @@ export default function CreatePage() {
                 }
               />
               <TextareaField
-                label="진심을 담은 편지"
-                className="md:col-span-2"
-                hint="1-2000자"
+                label="마음을 전하는 편지"
+                className="md:col-span-2 rounded-[32px] border-slate-100 min-h-[200px]"
+                placeholder="여기에 당신의 진심을 담아주세요."
                 value={form.letter}
                 error={errors.letter}
                 onChange={(event) =>
@@ -228,77 +230,83 @@ export default function CreatePage() {
           </div>
         </Panel>
 
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-serif text-3xl text-cocoa">Moments</p>
-            <p className="mt-2 text-sm text-rosewood/75">
-              사진을 던지거나 수동으로 추억을 입력할 수 있습니다.
-            </p>
+        <section>
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.4em] text-brand-primary/40 mb-2">02. Story Boards</p>
+              <h3 className="font-serif text-3xl text-brand-dark italic">Moments</h3>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setForm((current) => addQuickMoments(current));
+                  setErrors({});
+                  setErrorBanner(null);
+                }}
+                disabled={form.moments.length >= 8}
+                className="rounded-xl border-slate-100 text-slate-400"
+              >
+                빠른 생성
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                onClick={() => setForm((current) => addBlankMoment(current))}
+                disabled={form.moments.length >= 8}
+                className="bg-brand-primary shadow-lg rounded-xl"
+              >
+                추억 추가
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setForm((current) => addQuickMoments(current));
-                setErrors({});
-                setErrorBanner(null);
-              }}
-              disabled={form.moments.length >= 8}
-            >
-              샘플 추가
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setForm((current) => addBlankMoment(current))}
-              disabled={form.moments.length >= 8}
-            >
-              수동 추가
-            </Button>
+
+          <SmartDropzone
+            maxCount={8 - form.moments.length}
+            onMomentsAdded={(newMoments) => {
+              setForm((current) => ({
+                ...current,
+                moments: [...current.moments, ...newMoments].slice(0, 8),
+              }));
+              setErrors({});
+            }}
+          />
+
+          <div className="grid gap-10 mt-10">
+            {form.moments.map((moment, index) => (
+              <MomentEditor
+                key={moment.id}
+                index={index}
+                moment={moment}
+                canRemove={form.moments.length > 3}
+                errors={errors.moments?.[index]}
+                onRemove={() =>
+                  setForm((current) => removeMoment(current, moment.id))
+                }
+                onChange={(patch) =>
+                  setForm((current) => ({
+                    ...current,
+                    moments: current.moments.map((item) =>
+                      item.id === moment.id ? { ...item, ...patch } : item,
+                    ),
+                  }))
+                }
+              />
+            ))}
           </div>
-        </div>
+        </section>
 
-        <SmartDropzone
-          maxCount={8 - form.moments.length}
-          onMomentsAdded={(newMoments) => {
-            setForm((current) => ({
-              ...current,
-              moments: [...current.moments, ...newMoments].slice(0, 8),
-            }));
-            setErrors({});
-          }}
-        />
-
-        <div className="grid gap-5">
-          {form.moments.map((moment, index) => (
-            <MomentEditor
-              key={moment.id}
-              index={index}
-              moment={moment}
-              canRemove={form.moments.length > 3}
-              errors={errors.moments?.[index]}
-              onRemove={() =>
-                setForm((current) => removeMoment(current, moment.id))
-              }
-              onChange={(patch) =>
-                setForm((current) => ({
-                  ...current,
-                  moments: current.moments.map((item) =>
-                    item.id === moment.id ? { ...item, ...patch } : item,
-                  ),
-                }))
-              }
-            />
-          ))}
-        </div>
-
-        <div className="flex flex-wrap justify-end gap-3">
-          <ButtonLink href="/preview" variant="ghost">
-            미리보기 보기
+        <div className="flex flex-wrap justify-end gap-5 pt-12 border-t border-slate-100">
+          <ButtonLink href="/preview" variant="ghost" className="text-slate-400">
+            마지막 미리보기 보기
           </ButtonLink>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "앨범 초안 생성 중..." : "미리보기 만들기"}
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="px-12 py-5 bg-brand-dark text-white rounded-2xl shadow-liquid hover:bg-brand-primary transition-all scale-105 active:scale-95 text-base font-bold"
+          >
+            {isSubmitting ? "초안 생성 중..." : "미리보기 만들기"}
           </Button>
         </div>
       </form>

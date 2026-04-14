@@ -20,7 +20,7 @@ function StickerLayer({ decorations }: { decorations?: Decoration[] }) {
             left: `${deco.x}%`,
             top: `${deco.y}%`,
             transform: `translate(-50%, -50%) rotate(${deco.rotate}deg) scale(${deco.scale})`,
-            fontSize: "2rem",
+            fontSize: "2.5rem",
             userSelect: "none",
           }}
         >
@@ -34,26 +34,24 @@ function StickerLayer({ decorations }: { decorations?: Decoration[] }) {
 function renderPageContent(page: GeneratedPage) {
   if (page.type === "cover") {
     return (
-      <div className="relative flex h-full flex-col justify-end overflow-hidden rounded-[20px] bg-cocoa text-white shadow-inner">
+      <div className="relative flex h-full flex-col justify-end overflow-hidden rounded-[24px] bg-brand-dark text-white">
         {page.photoUrl ? (
           <img
             src={page.photoUrl}
             alt={page.title ?? "cover"}
-            className="absolute inset-0 h-full w-full object-cover opacity-60 transition-transform duration-700 hover:scale-105"
+            className="absolute inset-0 h-full w-full object-cover opacity-50"
           />
         ) : null}
-        
         <StickerLayer decorations={page.decorations} />
-
-        <div className="relative mt-auto bg-gradient-to-t from-cocoa via-cocoa/80 to-transparent p-10">
-          <div className="h-px w-12 bg-coral mb-6" />
-          <p className="text-[10px] uppercase tracking-[0.5em] text-white/60 mb-2">
-            Anniversary Album
+        <div className="relative mt-auto bg-gradient-to-t from-brand-dark via-brand-dark/80 to-transparent p-12">
+          <div className="h-1 w-12 bg-brand-primary mb-8 rounded-full" />
+          <p className="text-[11px] font-black uppercase tracking-[0.5em] text-brand-primary/80 mb-4">
+            Exclusive Anniversary
           </p>
-          <h3 className="font-serif text-4xl leading-tight">
+          <h3 className="font-serif text-5xl leading-tight tracking-tight">
             {page.title}
           </h3>
-          {page.body ? <p className="mt-4 text-sm text-white/70 font-light tracking-wide">{page.body}</p> : null}
+          {page.body ? <p className="mt-6 text-sm text-white/60 font-medium leading-relaxed max-w-sm">{page.body}</p> : null}
         </div>
       </div>
     );
@@ -61,30 +59,28 @@ function renderPageContent(page: GeneratedPage) {
 
   if (page.type === "moment") {
     return (
-      <div className="grid h-full gap-8 bg-white p-8 md:grid-cols-[1.1fr_0.9fr]">
-        <div className="relative overflow-hidden rounded-[16px] shadow-lg group">
+      <div className="grid h-full gap-12 bg-white p-10 md:grid-cols-[1.2fr_0.8fr]">
+        <div className="relative overflow-hidden rounded-[20px] shadow-2xl group bg-slate-50">
           {page.photoUrl ? (
             <img
               src={page.photoUrl}
               alt={page.title ?? "moment"}
-              className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110"
+              className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105"
             />
           ) : null}
-          
           <StickerLayer decorations={page.decorations} />
-
-          <div className="absolute inset-0 bg-black/5" />
         </div>
-        <div className="flex flex-col justify-center py-4">
-          <p className="text-[10px] uppercase tracking-[0.4em] text-rosewood/40 font-bold mb-6">
-            Moment {page.pageNumber}
+        <div className="flex flex-col justify-center">
+          <p className="text-[11px] font-black uppercase tracking-[0.4em] text-brand-primary/40 mb-8">
+            Scene {page.pageNumber}
           </p>
-          <h3 className="font-serif text-3xl text-cocoa mb-6 border-b border-rosewood/5 pb-6">
+          <h3 className="font-serif text-4xl text-brand-dark mb-8 leading-tight">
             {page.title}
           </h3>
+          <div className="h-px w-full bg-slate-100 mb-8" />
           {page.body ? (
-            <p className="whitespace-pre-wrap text-sm leading-8 text-rosewood/70 font-light italic">
-              "{page.body}"
+            <p className="whitespace-pre-wrap text-base leading-9 text-slate-500 font-medium italic">
+              {page.body}
             </p>
           ) : null}
         </div>
@@ -94,17 +90,17 @@ function renderPageContent(page: GeneratedPage) {
 
   if (page.type === "letter") {
     return (
-      <div className="flex h-full flex-col justify-center items-center bg-[#fffdf8] p-12 text-cocoa text-center relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-coral/20 to-transparent" />
-        <p className="text-[10px] uppercase tracking-[0.4em] text-rosewood/40 mb-10">Private Letter</p>
-        <h3 className="font-serif text-4xl mb-10">{page.title}</h3>
-        <div className="max-w-md">
-          <p className="whitespace-pre-wrap text-base leading-9 text-rosewood/80 font-serif opacity-90 italic">
+      <div className="flex h-full flex-col justify-center items-center bg-[#fdfcfb] p-16 text-brand-dark text-center relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-brand-primary/20 via-brand-secondary/20 to-brand-primary/20" />
+        <p className="text-[11px] font-black uppercase tracking-[0.4em] text-brand-primary/40 mb-12">Heartfelt Note</p>
+        <h3 className="font-serif text-5xl mb-12 tracking-tighter">{page.title}</h3>
+        <div className="max-w-xl">
+          <p className="whitespace-pre-wrap text-lg leading-10 text-slate-600 font-serif italic">
             {page.body}
           </p>
         </div>
-        <div className="absolute bottom-0 right-0 p-8 opacity-10 rotate-12 translate-x-4 translate-y-4">
-          <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor">
+        <div className="mt-16 text-brand-accent animate-pulse">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
           </svg>
         </div>
@@ -113,13 +109,15 @@ function renderPageContent(page: GeneratedPage) {
   }
 
   return (
-    <div className="flex h-full flex-col items-center justify-center bg-oat/30 p-12 text-cocoa text-center border-4 border-double border-white/40">
-      <p className="text-[10px] uppercase tracking-[0.4em] text-rosewood/40 mb-6">Closing</p>
-      <h3 className="font-serif text-3xl mb-4 italic opacity-80">{page.title}</h3>
-      {page.body ? <p className="text-sm text-rosewood/60 leading-7 font-light">{page.body}</p> : null}
-      <div className="mt-12 flex h-12 w-12 items-center justify-center rounded-full border border-rosewood/10 bg-white/50 text-rosewood text-xs italic">
-        SG
+    <div className="flex h-full flex-col items-center justify-center bg-slate-50 p-16 text-brand-dark text-center">
+      <div className="w-20 h-20 rounded-3xl bg-white shadow-xl flex items-center justify-center mb-12 text-brand-primary animate-float">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+        </svg>
       </div>
+      <p className="text-[11px] font-black uppercase tracking-[0.4em] text-brand-primary/40 mb-6">Fin.</p>
+      <h3 className="font-serif text-4xl mb-6 italic">{page.title}</h3>
+      {page.body ? <p className="text-base text-slate-400 font-medium leading-8">{page.body}</p> : null}
     </div>
   );
 }
@@ -130,69 +128,66 @@ export function PreviewBook({ draft }: { draft: AlbumDraftDetail }) {
 
   return (
     <div className="relative">
-      {/* Mood Music Player (Floating) */}
-      <div className="fixed bottom-8 right-8 z-40 animate-rise">
-        <div className="paper-panel p-4 rounded-[24px] shadow-2xl flex items-center gap-4 bg-white/80 backdrop-blur-md">
-          <button
-            onClick={() => setIsPlaying(!isPlaying)}
-            className={cn(
-              "h-12 w-12 rounded-full flex items-center justify-center transition-all",
-              isPlaying ? "bg-coral text-white scale-110 shadow-lg shadow-coral/30" : "bg-rosewood/5 text-rosewood"
-            )}
-          >
-            {isPlaying ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="ml-1"><path d="M8 5v14l11-7z"/></svg>
-            )}
-          </button>
-          <div className="flex flex-col pr-4">
-            <p className="text-[9px] uppercase tracking-[0.3em] text-rosewood/40 font-bold mb-1">Album Mood</p>
-            <div className="flex gap-2">
-              {(["classic", "acoustic", "jazz"] as const).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setMood(m)}
-                  className={cn(
-                    "text-[10px] uppercase tracking-widest px-2 py-1 rounded-md transition-all",
-                    mood === m ? "bg-rosewood text-white" : "text-rosewood/40 hover:bg-rosewood/5"
-                  )}
-                >
-                  {m}
-                </button>
-              ))}
+      {/* Mood Music Player (Top Floating) */}
+      <div className="absolute top-[-80px] right-0 z-40">
+        <div className="paper-panel px-6 py-3 rounded-2xl shadow-liquid flex items-center gap-6">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsPlaying(!isPlaying)}
+              className={cn(
+                "h-10 w-10 rounded-xl flex items-center justify-center transition-all",
+                isPlaying ? "bg-brand-primary text-white shadow-lg" : "bg-slate-100 text-slate-400"
+              )}
+            >
+              {isPlaying ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="ml-1"><path d="M8 5v14l11-7z"/></svg>
+              )}
+            </button>
+            <div className="hidden sm:block">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Mood BGM</p>
+              <p className="text-[11px] font-bold text-brand-dark">{isPlaying ? `Playing ${mood}...` : "Paused"}</p>
             </div>
           </div>
-          {isPlaying && (
-            <div className="flex gap-1 items-end h-4 pr-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="w-1 bg-coral rounded-full animate-bounce"
-                  style={{ height: `${Math.random() * 100}%`, animationDuration: `${0.5 + Math.random()}s` }}
-                />
-              ))}
-            </div>
-          )}
+          
+          <div className="h-8 w-px bg-slate-100" />
+          
+          <div className="flex gap-2">
+            {(["classic", "acoustic", "jazz"] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => setMood(m)}
+                className={cn(
+                  "text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg transition-all",
+                  mood === m ? "bg-brand-primary/10 text-brand-primary" : "text-slate-400 hover:bg-slate-50"
+                )}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="flex gap-8 overflow-x-auto pb-12 snap-x snap-mandatory scrollbar-hide px-4 sm:px-0">
+      <div className="flex gap-10 overflow-x-auto pb-8 mb-8 snap-x snap-mandatory px-4 sm:px-0 custom-scrollbar">
         {draft.generatedPages.map((page, index) => (
           <div
             key={`${page.pageNumber}-${page.type}`}
-            className="flex-none w-full max-w-[840px] snap-center animate-rise"
+            className="flex-none w-full max-w-[920px] snap-center animate-rise"
             style={{ animationDelay: `${Math.min(index * 100, 400)}ms` }}
           >
-            <div className="mb-4 flex items-center justify-between px-4 text-[10px] uppercase tracking-[0.3em] text-rosewood/40 font-bold">
-              <span>
-                Plate {String(page.pageNumber).padStart(2, "0")}
-              </span>
-              <span>{page.type}</span>
+            <div className="mb-6 flex items-center justify-between px-6">
+              <div className="flex items-center gap-3">
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brand-primary/10 text-brand-primary text-[10px] font-black">
+                  {String(page.pageNumber).padStart(2, "0")}
+                </span>
+                <span className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">{page.type}</span>
+              </div>
             </div>
-            <div className="paper-panel page-grid min-h-[520px] rounded-[24px] p-2 shadow-2xl relative group overflow-hidden border-none">
-              <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-black/5 to-transparent z-10 pointer-events-none" />
-              <div className="relative h-full w-full bg-white rounded-[18px] overflow-hidden">
+            <div className="paper-panel min-h-[580px] rounded-[40px] p-2 shadow-liquid relative group overflow-hidden border-none">
+              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-black/[0.03] to-transparent z-10 pointer-events-none" />
+              <div className="relative h-full w-full bg-white rounded-[32px] overflow-hidden shadow-inner">
                 {renderPageContent(page)}
               </div>
             </div>
@@ -200,40 +195,35 @@ export function PreviewBook({ draft }: { draft: AlbumDraftDetail }) {
         ))}
       </div>
 
-      <div className="hidden lg:flex absolute -bottom-4 left-1/2 -translate-x-1/2 items-center gap-4 text-[10px] uppercase tracking-[0.3em] text-rosewood/40">
-        <span>← Scroll to flip</span>
-        <div className="h-px w-12 bg-rosewood/10" />
-        <span>{draft.generatedPages.length} Pages</span>
-      </div>
-
-      <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Panel className="lg:col-span-2 bg-white/40 border-none backdrop-blur-sm p-10 rounded-[34px]">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <Panel className="lg:col-span-2 bg-white/40 border-none backdrop-blur-xl p-12 rounded-[48px] shadow-glass">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.4em] text-coral font-bold mb-2">Album Info</p>
-              <h2 className="font-serif text-4xl text-cocoa">{draft.title}</h2>
-              <p className="mt-4 text-sm text-rosewood/60 leading-7 max-w-lg">{draft.subtitle}</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.4em] text-brand-primary mb-4">Masterpiece Draft</p>
+              <h2 className="font-serif text-5xl text-brand-dark tracking-tight">{draft.title}</h2>
+              <p className="mt-6 text-base text-slate-500 leading-8 max-w-xl font-medium">{draft.subtitle}</p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <div className="px-4 py-2 rounded-full bg-white/60 text-[10px] uppercase tracking-widest text-rosewood border border-rosewood/5">
+              <div className="px-5 py-2.5 rounded-2xl bg-white shadow-sm text-[11px] font-black uppercase tracking-widest text-brand-primary border border-brand-primary/5">
                 {labelForAnniversaryType(draft.anniversaryType)}
               </div>
-              <div className="px-4 py-2 rounded-full bg-white/60 text-[10px] uppercase tracking-widest text-rosewood border border-rosewood/5">
+              <div className="px-5 py-2.5 rounded-2xl bg-white shadow-sm text-[11px] font-black uppercase tracking-widest text-brand-primary border border-brand-primary/5">
                 {formatDate(draft.anniversaryDate)}
               </div>
             </div>
           </div>
         </Panel>
         
-        <div className="bg-cocoa p-10 rounded-[34px] text-white flex flex-col justify-between shadow-2xl">
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.4em] text-white/40 font-bold mb-4">Summary</p>
-            <p className="text-sm leading-relaxed opacity-80">
-              {draft.couple.senderName}님이 {draft.couple.receiverName}님을 위해 준비한 총 {draft.moments.length}장의 추억이 담긴 앨범입니다.
+        <div className="bg-brand-dark p-12 rounded-[48px] text-white flex flex-col justify-between shadow-liquid relative overflow-hidden">
+          <div className="blob absolute top-[-50%] right-[-50%] w-64 h-64 bg-brand-primary/20 blur-3xl opacity-50" />
+          <div className="relative">
+            <p className="text-[11px] font-black uppercase tracking-[0.4em] text-white/40 mb-6">Process Summary</p>
+            <p className="text-base leading-relaxed font-medium text-white/80">
+              {draft.couple.senderName}님이 {draft.couple.receiverName}님을 위해 정성껏 빚어낸 {draft.moments.length}장의 소중한 기록입니다.
             </p>
           </div>
-          <div className="mt-10 border-t border-white/10 pt-6">
-            <p className="text-[10px] uppercase tracking-widest text-coral font-bold italic">Editorial Selection Complete</p>
+          <div className="relative mt-12 pt-8 border-t border-white/10">
+            <p className="text-[11px] font-black uppercase tracking-widest text-brand-accent italic">Quality Assurance Certified</p>
           </div>
         </div>
       </div>
@@ -243,11 +233,11 @@ export function PreviewBook({ draft }: { draft: AlbumDraftDetail }) {
 
 export function PreviewBookSkeleton() {
   return (
-    <div className="flex gap-8 overflow-hidden px-4 sm:px-0">
+    <div className="flex gap-10 overflow-hidden px-4 sm:px-0">
       {[1, 2].map((i) => (
-        <div key={i} className="flex-none w-full max-w-[840px] animate-pulse">
-          <div className="mb-4 h-3 w-24 rounded bg-rosewood/10" />
-          <div className="min-h-[520px] rounded-[34px] bg-white/40 p-4 border border-rosewood/5" />
+        <div key={i} className="flex-none w-full max-w-[920px] animate-pulse">
+          <div className="mb-6 h-4 w-32 rounded-lg bg-slate-100" />
+          <div className="min-h-[580px] rounded-[40px] bg-white/40 p-4 border border-slate-100" />
         </div>
       ))}
     </div>
@@ -258,10 +248,10 @@ export function ModeBadge({ source }: { source: "api" | "mock" }) {
   return (
     <div
       className={cn(
-        "inline-flex rounded-full border px-4 py-2 text-[10px] uppercase tracking-[0.28em] font-bold shadow-sm",
+        "inline-flex rounded-2xl border px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.25em] shadow-glass backdrop-blur-md",
         source === "api"
-          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-          : "border-amber-200 bg-amber-50 text-amber-700",
+          ? "border-brand-primary/20 bg-brand-primary/5 text-brand-primary"
+          : "border-brand-secondary/20 bg-brand-secondary/5 text-brand-secondary",
       )}
     >
       {source === "api" ? "Pro Pipeline" : "Preview Mode"}

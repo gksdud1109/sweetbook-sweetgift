@@ -72,20 +72,20 @@ export default function OrderPage() {
   if (!hydrated) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-coral border-t-transparent" />
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-brand-primary border-t-transparent" />
       </div>
     );
   }
 
   if (!book) {
     return (
-      <div className="grid gap-6 py-12">
+      <div className="grid gap-6 py-20 animate-rise">
         <PageHero
-          eyebrow="Order Form"
-          title="책 생성이 먼저 필요합니다."
-          body="Preview 화면에서 `책 생성 요청`을 실행하면 Orders API 단계로 이어집니다."
+          eyebrow="Checkout Flow"
+          title="작품 생성이 먼저 필요합니다."
+          body="미리보기 화면에서 '실물 도서 제작하기'를 실행하면 주문 단계로 이어집니다."
           actions={
-            <ButtonLink href="/preview">Preview로 이동</ButtonLink>
+            <ButtonLink href="/preview" className="bg-brand-primary shadow-liquid rounded-2xl">미리보기로 이동</ButtonLink>
           }
         />
       </div>
@@ -93,98 +93,98 @@ export default function OrderPage() {
   }
 
   return (
-    <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] py-8 lg:py-16 items-start">
-      <div className="grid gap-10">
-        <div className="flex items-end justify-between gap-4">
+    <div className="grid gap-16 lg:grid-cols-[1.1fr_0.9fr] py-12 items-start">
+      <div className="grid gap-12">
+        <div className="flex items-end justify-between gap-8">
           <PageHero
-            eyebrow="Gift Customization"
-            title="마지막으로 선물의 디테일을 정해주세요."
-            body="배송 정보와 함께 실제 제작될 앨범의 재질과 선물 포장 옵션을 선택합니다."
+            eyebrow="Order Customization"
+            title="마지막으로 디테일을 완성하세요."
+            body="선물 포장 옵션과 배송 정보를 입력해주세요. 당신의 소중한 기록이 작품으로 탄생하는 마지막 과정입니다."
           />
           <ModeBadge source={source} />
         </div>
         
-        {error ? <StatusBanner tone="error">{error}</StatusBanner> : null}
+        {error ? <StatusBanner tone="error" className="rounded-2xl shadow-sm">{error}</StatusBanner> : null}
         
-        <form onSubmit={handleSubmit} className="grid gap-10">
+        <form onSubmit={handleSubmit} className="grid gap-12">
+          {/* Packaging Options */}
           <section className="animate-rise [animation-delay:100ms]">
-            <h3 className="text-xs uppercase tracking-[0.4em] text-rosewood/40 font-bold mb-6">01. Premium Options</h3>
-            <div className="grid gap-6">
-              <Panel className="p-8 border-none bg-white/60 backdrop-blur-sm">
-                <div className="grid gap-8 sm:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium text-cocoa block mb-4">Paper Quality</label>
-                    <div className="flex gap-2 p-1 bg-rosewood/5 rounded-xl w-fit">
-                      {(["matte", "glossy"] as const).map((opt) => (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => setOrderForm(c => ({ ...c, packaging: opt }))}
-                          className={cn(
-                            "px-4 py-2 rounded-lg text-xs uppercase tracking-widest transition-all",
-                            orderForm.packaging === opt ? "bg-white text-rosewood shadow-sm font-bold" : "text-rosewood/40 hover:text-rosewood/60"
-                          )}
-                        >
-                          {opt}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-cocoa block mb-4">Ribbon Color</label>
-                    <div className="flex gap-4">
-                      {(["none", "red", "gold"] as const).map((color) => (
-                        <button
-                          key={color}
-                          type="button"
-                          onClick={() => setOrderForm(c => ({ ...c, ribbon: color }))}
-                          className={cn(
-                            "h-8 w-8 rounded-full border-2 transition-all flex items-center justify-center",
-                            orderForm.ribbon === color ? "border-coral scale-110 shadow-lg shadow-coral/20" : "border-transparent"
-                          )}
-                        >
-                          <div className={cn(
-                            "h-5 w-5 rounded-full",
-                            color === "none" && "bg-slate-100 border border-slate-200 relative overflow-hidden",
-                            color === "red" && "bg-red-500",
-                            color === "gold" && "bg-amber-400"
-                          )}>
-                            {color === "none" && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-px h-6 bg-red-400 rotate-45" />}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
+            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-brand-primary/40 mb-8">01. Production Options</h3>
+            <div className="paper-panel p-10 rounded-[48px] border-none shadow-glass">
+              <div className="grid gap-10 sm:grid-cols-2">
+                <div>
+                  <label className="text-sm font-bold text-brand-dark block mb-5">Paper Texture</label>
+                  <div className="flex gap-2 p-1.5 bg-slate-100 rounded-2xl w-fit">
+                    {(["matte", "glossy"] as const).map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setOrderForm(c => ({ ...c, packaging: opt }))}
+                        className={cn(
+                          "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+                          orderForm.packaging === opt ? "bg-white text-brand-primary shadow-lg scale-105" : "text-slate-400 hover:text-slate-600"
+                        )}
+                      >
+                        {opt}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <div className="mt-8 pt-8 border-t border-rosewood/5 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-cocoa">Add Gift Card</p>
-                    <p className="text-[10px] text-rosewood/40 uppercase tracking-widest mt-1">+ ₩2,000</p>
+                <div>
+                  <label className="text-sm font-bold text-brand-dark block mb-5">Ribbon Selection</label>
+                  <div className="flex gap-5">
+                    {(["none", "red", "gold"] as const).map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setOrderForm(c => ({ ...c, ribbon: color }))}
+                        className={cn(
+                          "h-10 w-10 rounded-full border-2 transition-all flex items-center justify-center",
+                          orderForm.ribbon === color ? "border-brand-primary scale-110 shadow-liquid" : "border-transparent"
+                        )}
+                      >
+                        <div className={cn(
+                          "h-6 w-6 rounded-full shadow-inner",
+                          color === "none" && "bg-slate-50 border border-slate-200 relative overflow-hidden",
+                          color === "red" && "bg-rose-500",
+                          color === "gold" && "bg-amber-400"
+                        )}>
+                          {color === "none" && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-px h-8 bg-rose-300 rotate-45" />}
+                        </div>
+                      </button>
+                    ))}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setOrderForm(c => ({ ...c, giftCard: !c.giftCard }))}
-                    className={cn(
-                      "w-12 h-6 rounded-full transition-all relative",
-                      orderForm.giftCard ? "bg-coral" : "bg-rosewood/10"
-                    )}
-                  >
-                    <div className={cn(
-                      "absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all",
-                      orderForm.giftCard && "translate-x-6"
-                    )} />
-                  </button>
                 </div>
-              </Panel>
+              </div>
+              <div className="mt-10 pt-10 border-t border-slate-100 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold text-brand-dark">Premium Gift Card</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1.5">+ ₩2,000</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setOrderForm(c => ({ ...c, giftCard: !c.giftCard }))}
+                  className={cn(
+                    "w-14 h-7 rounded-full transition-all relative",
+                    orderForm.giftCard ? "bg-brand-primary" : "bg-slate-200"
+                  )}
+                >
+                  <div className={cn(
+                    "absolute top-1 left-1 w-5 h-5 bg-white rounded-full transition-all shadow-sm",
+                    orderForm.giftCard && "translate-x-7"
+                  )} />
+                </button>
+              </div>
             </div>
           </section>
 
+          {/* Delivery Info */}
           <section className="animate-rise [animation-delay:200ms]">
-            <h3 className="text-xs uppercase tracking-[0.4em] text-rosewood/40 font-bold mb-6">02. Delivery Info</h3>
-            <Panel className="p-10 border-none bg-white shadow-2xl rounded-[40px]">
-              <div className="grid gap-6">
+            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-brand-primary/40 mb-8">02. Shipping Details</h3>
+            <Panel className="p-12 rounded-[48px] bg-white/60 backdrop-blur-xl border-none shadow-liquid">
+              <div className="grid gap-8">
                 <InputField
-                  label="수령인 이름"
+                  label="수령인 성함"
                   value={orderForm.name}
                   onChange={(event) =>
                     setOrderForm((current) => ({
@@ -192,6 +192,7 @@ export default function OrderPage() {
                       name: event.target.value,
                     }))
                   }
+                  className="rounded-2xl border-slate-100"
                 />
                 <InputField
                   label="연락처"
@@ -203,9 +204,10 @@ export default function OrderPage() {
                       phone: event.target.value,
                     }))
                   }
+                  className="rounded-2xl border-slate-100"
                 />
                 <InputField
-                  label="기본 주소"
+                  label="배송 주소"
                   value={orderForm.address1}
                   onChange={(event) =>
                     setOrderForm((current) => ({
@@ -213,8 +215,9 @@ export default function OrderPage() {
                       address1: event.target.value,
                     }))
                   }
+                  className="rounded-2xl border-slate-100"
                 />
-                <div className="grid gap-6 sm:grid-cols-[1fr_120px]">
+                <div className="grid gap-8 sm:grid-cols-[1fr_140px]">
                   <InputField
                     label="상세 주소"
                     value={orderForm.address2}
@@ -224,6 +227,7 @@ export default function OrderPage() {
                         address2: event.target.value,
                       }))
                     }
+                    className="rounded-2xl border-slate-100"
                   />
                   <InputField
                     label="우편번호"
@@ -234,15 +238,20 @@ export default function OrderPage() {
                         zipCode: event.target.value,
                       }))
                     }
+                    className="rounded-2xl border-slate-100"
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-4 mt-12">
-                <ButtonLink href="/preview" variant="ghost">
+              <div className="flex justify-end gap-5 mt-16">
+                <ButtonLink href="/preview" variant="ghost" className="text-slate-400">
                   수정하러 가기
                 </ButtonLink>
-                <Button type="submit" disabled={isSubmitting} className="px-10 py-4 bg-cocoa text-white hover:bg-rosewood transition-all">
-                  {isSubmitting ? "처리 중..." : "주문 완료 및 결제"}
+                <Button 
+                  type="submit" 
+                  disabled={isSubmitting} 
+                  className="px-12 py-5 bg-brand-dark text-white rounded-2xl shadow-liquid hover:bg-brand-primary transition-all scale-105 font-bold"
+                >
+                  {isSubmitting ? "처리 중..." : "결제 및 주문 완료"}
                 </Button>
               </div>
             </Panel>
@@ -251,40 +260,49 @@ export default function OrderPage() {
       </div>
 
       <aside className="lg:sticky lg:top-24 animate-rise [animation-delay:300ms]">
-        <Panel className="p-10 rounded-[40px] bg-cocoa text-white border-none shadow-2xl overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-coral/10 rounded-full blur-3xl -translate-y-16 translate-x-16" />
+        <Panel className="p-12 rounded-[48px] bg-brand-dark text-white border-none shadow-liquid overflow-hidden relative">
+          <div className="blob absolute top-[-20%] right-[-20%] w-48 h-48 bg-brand-primary/30 blur-3xl opacity-40" />
           
-          <p className="text-[10px] uppercase tracking-[0.5em] text-white/40 font-bold mb-6">Price Summary</p>
-          <h2 className="font-serif text-3xl mb-8">{draft?.title ?? "Anniversary Album"}</h2>
+          <p className="text-[11px] font-black uppercase tracking-[0.5em] text-brand-primary mb-8">Summary & Pricing</p>
+          <h2 className="font-serif text-4xl mb-10 tracking-tight">{draft?.title ?? "Your Album"}</h2>
           
-          <dl className="grid gap-4 text-sm mb-10">
-            <div className="flex justify-between opacity-60">
-              <dt>기본 제작비</dt>
-              <dd>₩35,000</dd>
+          <dl className="grid gap-5 text-sm mb-12">
+            <div className="flex justify-between text-white/50">
+              <dt>기본 제작 (High-end)</dt>
+              <dd className="font-bold text-white">₩35,000</dd>
             </div>
-            <div className="flex justify-between opacity-60">
-              <dt>페이지 추가 (8p)</dt>
-              <dd>₩0 (무료)</dd>
+            <div className="flex justify-between text-white/50">
+              <dt>전문 에디토리얼 레이아웃</dt>
+              <dd className="font-bold text-white">₩0</dd>
             </div>
             {orderForm.giftCard && (
-              <div className="flex justify-between text-coral font-bold">
-                <dt>기프트 카드</dt>
+              <div className="flex justify-between text-brand-primary font-black uppercase tracking-widest">
+                <dt>Premium Gift Card</dt>
                 <dd>+ ₩2,000</dd>
               </div>
             )}
-            <div className="h-px bg-white/10 my-2" />
-            <div className="flex justify-between text-xl font-bold">
-              <dt>최종 금액</dt>
-              <dd>₩{orderForm.giftCard ? "37,000" : "35,000"}</dd>
+            <div className="h-px bg-white/10 my-4" />
+            <div className="flex justify-between text-2xl font-black">
+              <dt className="tracking-tighter">TOTAL</dt>
+              <dd className="text-brand-primary">₩{orderForm.giftCard ? "37,000" : "35,000"}</dd>
             </div>
           </dl>
 
-          <div className="bg-white/5 p-6 rounded-[24px]">
-            <p className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold">Order Summary</p>
-            <ul className="text-xs space-y-2 opacity-70 leading-relaxed">
-              <li>• {orderForm.packaging === "matte" ? "고급 무광 용지" : "선명한 유광 용지"}</li>
-              <li>• {orderForm.ribbon === "none" ? "포장 없음" : `${orderForm.ribbon === "red" ? "클래식 레드" : "프리미엄 골드"} 리본 포장`}</li>
-              <li>• SweetBook 정식 인쇄 서비스 연동</li>
+          <div className="bg-white/5 backdrop-blur-md p-8 rounded-[32px] border border-white/5">
+            <p className="text-[10px] font-black uppercase tracking-widest text-brand-primary mb-4">Confirmed Specs</p>
+            <ul className="text-[13px] space-y-3 font-medium text-white/70">
+              <li className="flex items-center gap-3">
+                <span className="h-1.5 w-1.5 rounded-full bg-brand-primary" />
+                {orderForm.packaging === "matte" ? "고급 무광 프리미엄 용지" : "선명한 유광 하이글로시 용지"}
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="h-1.5 w-1.5 rounded-full bg-brand-primary" />
+                {orderForm.ribbon === "none" ? "친환경 기본 패키징" : `${orderForm.ribbon === "red" ? "클래식 레드" : "시그니처 골드"} 리본 포장`}
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="h-1.5 w-1.5 rounded-full bg-brand-primary" />
+                SweetBook Pro 인쇄 자동화 시스템 연동
+              </li>
             </ul>
           </div>
         </Panel>
