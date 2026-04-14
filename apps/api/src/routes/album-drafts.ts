@@ -72,7 +72,7 @@ export async function albumDraftRoutes(app: FastifyInstance): Promise<void> {
       generatedPages,
     };
 
-    saveDraft(draft);
+    await saveDraft(draft);
 
     return reply.status(201).send({
       data: {

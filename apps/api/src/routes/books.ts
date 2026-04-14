@@ -10,12 +10,12 @@ import {
 export async function bookRoutes(app: FastifyInstance): Promise<void> {
   // POST /api/v1/books
   //
-  // Idempotency concern:
-  //   If the same draftId is submitted twice (e.g. double-click, network retry),
-  //   this endpoint will call SweetBook again and create a second book.
-  //   For production, add an idempotency key and persist the bookId so
-  //   a second call returns the existing result.
-  //   TODO: return cached bookId if draft.status === "book_created".
+  // Idempotency: draft.status guard returns cached bookId for repeated requests.
+  //
+  // TODO (race condition): two concurrent requests with the same draftId can both
+  // pass the status guard before either calls updateDraft(), resulting in two books
+  // at SweetBook and the second bookId overwriting the first in the store.
+  // Fix requires an optimistic lock or per-draftId mutex before the await boundary.
   app.post("/api/v1/books", async (req, reply) => {
     const parsed = CreateBookSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -72,7 +72,7 @@ export async function bookRoutes(app: FastifyInstance): Promise<void> {
     }
 
     // Persist bookId so retries are idempotent
-    updateDraft(draftId, { status: "book_created", bookId: upstream.id });
+    await updateDraft(draftId, { status: "book_created", bookId: upstream.id });
 
     return reply.status(201).send({
       data: {

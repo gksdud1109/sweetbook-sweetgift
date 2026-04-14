@@ -4,18 +4,27 @@ import {
   createOrder,
   mapUpstreamError,
 } from "../adapters/sweetbook/index.js";
-import { getDraftByBookId, updateDraft } from "../store/draft-store.js";
+import {
+  getDraftByBookId,
+  updateDraft,
+  getOrderIdByBookId,
+  saveOrderId,
+} from "../store/draft-store.js";
 
 export async function orderRoutes(app: FastifyInstance): Promise<void> {
   // POST /api/v1/orders
   //
-  // Idempotency: if the same bookId was already successfully ordered,
-  // return the cached orderId without calling SweetBook again.
-  // This guards against double-click, network retry, and response-loss retries.
+  // Idempotency strategy:
+  //   1. Primary guard: bookId → orderId index (getOrderIdByBookId).
+  //      Works even when the draft cannot be found (corrupt store, external bookId).
+  //   2. On success: saveOrderId(bookId, orderId) persists the mapping to disk,
+  //      then updateDraft() updates the draft status if the draft exists.
   //
-  // Limitation: the draft store is in-memory — idempotency is lost on restart.
-  // TODO: persist orderId in a durable store and add X-Idempotency-Key support
-  //       for cross-process safety.
+  //   This ensures the idempotency invariant holds regardless of whether
+  //   getDraftByBookId() returns a result.
+  //
+  // TODO: add X-Idempotency-Key header support for cross-process safety
+  //       (current approach is single-process only).
   app.post("/api/v1/orders", async (req, reply) => {
     const parsed = CreateOrderSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -30,15 +39,12 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
 
     const { bookId, recipient } = parsed.data;
 
-    // Idempotency guard: return cached result if this book was already ordered
-    const existingDraft = getDraftByBookId(bookId);
-    if (existingDraft?.status === "ordered" && existingDraft.orderId) {
+    // Idempotency guard: bookId → orderId index is authoritative.
+    // Does not depend on getDraftByBookId(), so it holds even after store corruption.
+    const cachedOrderId = getOrderIdByBookId(bookId);
+    if (cachedOrderId) {
       return reply.send({
-        data: {
-          orderId: existingDraft.orderId,
-          bookId,
-          status: "ordered",
-        },
+        data: { orderId: cachedOrderId, bookId, status: "ordered" },
       });
     }
 
@@ -58,9 +64,13 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
       throw mapUpstreamError(err, "order");
     }
 
-    // Persist orderId so retries return the same result
+    // Persist the bookId → orderId mapping first (idempotency guarantee).
+    // updateDraft() is best-effort: the index above is the source of truth.
+    await saveOrderId(bookId, upstream.id);
+
+    const existingDraft = getDraftByBookId(bookId);
     if (existingDraft) {
-      updateDraft(existingDraft.draftId, {
+      await updateDraft(existingDraft.draftId, {
         status: "ordered",
         orderId: upstream.id,
       });

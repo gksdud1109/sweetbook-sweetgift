@@ -1,10 +1,9 @@
 // Tests for POST /api/v1/orders — idempotency and validation.
 //
-// Critical scenario from review:
-//   - Same bookId submitted twice → must NOT create two SweetBook orders
-//   - Invalid body → must return VALIDATION_ERROR, not a 500
+// Each bookId is isolated per test so happy-path and idempotency tests
+// don't share state and test intent stays unambiguous.
 //
-// env vars are set in tests/setup.ts (Jest setupFiles) before modules load
+// env vars and DATA_DIR tmpdir are set in tests/setup.ts before modules load.
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
@@ -47,71 +46,68 @@ const SAMPLE_RECIPIENT = {
   zipCode: "06123",
 };
 
+/** Create a fresh draft + book and return the bookId. */
+async function createBookId(app: Awaited<ReturnType<typeof buildApp>>): Promise<string> {
+  const draftRes = await app.inject({ method: "POST", url: "/api/v1/album-drafts", payload: SAMPLE_DRAFT_BODY });
+  const draftId = JSON.parse(draftRes.body).data.draftId;
+  const bookRes = await app.inject({ method: "POST", url: "/api/v1/books", payload: { draftId } });
+  return JSON.parse(bookRes.body).data.bookId;
+}
+
 describe("POST /api/v1/orders", () => {
   let app: Awaited<ReturnType<typeof buildApp>>;
-  let bookId: string;
 
-  beforeAll(async () => {
-    app = await buildApp();
+  beforeAll(async () => { app = await buildApp(); });
+  afterAll(async () => { await app.close(); });
 
-    // Create a draft then a book so we have a real bookId to order against
-    const draftRes = await app.inject({
-      method: "POST",
-      url: "/api/v1/album-drafts",
-      payload: SAMPLE_DRAFT_BODY,
-    });
-    const draftId = JSON.parse(draftRes.body).data.draftId;
-
-    const bookRes = await app.inject({
-      method: "POST",
-      url: "/api/v1/books",
-      payload: { draftId },
-    });
-    bookId = JSON.parse(bookRes.body).data.bookId;
-  });
-
-  afterAll(async () => {
-    await app.close();
-  });
-
-  it("creates an order and returns orderId + status ordered", async () => {
+  it("creates an order and returns orderId + status ordered (201)", async () => {
+    const bookId = await createBookId(app);
     const res = await app.inject({
       method: "POST",
       url: "/api/v1/orders",
       payload: { bookId, recipient: SAMPLE_RECIPIENT },
     });
     expect(res.statusCode).toBe(201);
-    const body = JSON.parse(res.body);
-    expect(body.data.orderId).toBeTruthy();
-    expect(body.data.bookId).toBe(bookId);
-    expect(body.data.status).toBe("ordered");
+    const { data } = JSON.parse(res.body);
+    expect(data.orderId).toBeTruthy();
+    expect(data.bookId).toBe(bookId);
+    expect(data.status).toBe("ordered");
   });
 
-  it("returns the SAME orderId on duplicate submission (idempotency guard)", async () => {
-    // First order (may have been created in the previous test — that's fine,
-    // the guard should kick in for any subsequent call)
-    const res1 = await app.inject({
-      method: "POST",
-      url: "/api/v1/orders",
-      payload: { bookId, recipient: SAMPLE_RECIPIENT },
-    });
-    const res2 = await app.inject({
-      method: "POST",
-      url: "/api/v1/orders",
-      payload: { bookId, recipient: SAMPLE_RECIPIENT },
-    });
+  it("returns the same orderId on duplicate submission (idempotency guard)", async () => {
+    // Fresh bookId: first call creates the order, second call must return the same orderId
+    const bookId = await createBookId(app);
+    const payload = { bookId, recipient: SAMPLE_RECIPIENT };
 
-    const orderId1 = JSON.parse(res1.body).data?.orderId;
-    const orderId2 = JSON.parse(res2.body).data?.orderId;
+    const first = await app.inject({ method: "POST", url: "/api/v1/orders", payload });
+    const second = await app.inject({ method: "POST", url: "/api/v1/orders", payload });
 
-    expect(orderId1).toBe(orderId2);
+    expect(first.statusCode).toBe(201);
+    // Second call hits the idempotency guard — returns cached result (200)
+    expect(second.statusCode).toBe(200);
+    expect(JSON.parse(first.body).data.orderId).toBe(JSON.parse(second.body).data.orderId);
+  });
+
+  it("idempotency holds even without a matching draft (external bookId scenario)", async () => {
+    // Call order with a bookId that has no draft in the store.
+    // First call creates the order; second call returns the same orderId via the
+    // bookId→orderId index (not via getDraftByBookId).
+    const externalBookId = `book_external_${Date.now()}`;
+    const payload = { bookId: externalBookId, recipient: SAMPLE_RECIPIENT };
+
+    const first = await app.inject({ method: "POST", url: "/api/v1/orders", payload });
+    const second = await app.inject({ method: "POST", url: "/api/v1/orders", payload });
+
+    expect(first.statusCode).toBe(201);
+    expect(JSON.parse(first.body).data.orderId).toBe(JSON.parse(second.body).data.orderId);
   });
 
   it("rejects missing recipient fields with VALIDATION_ERROR", async () => {
+    const bookId = await createBookId(app);
     const res = await app.inject({
       method: "POST",
       url: "/api/v1/orders",
-      payload: { bookId, recipient: { name: "홍길동" } }, // missing phone, address, zipCode
+      payload: { bookId, recipient: { name: "홍길동" } },
     });
     expect(res.statusCode).toBe(400);
     const body = JSON.parse(res.body);
@@ -120,13 +116,11 @@ describe("POST /api/v1/orders", () => {
   });
 
   it("rejects invalid zipCode format", async () => {
+    const bookId = await createBookId(app);
     const res = await app.inject({
       method: "POST",
       url: "/api/v1/orders",
-      payload: {
-        bookId,
-        recipient: { ...SAMPLE_RECIPIENT, zipCode: "abc" },
-      },
+      payload: { bookId, recipient: { ...SAMPLE_RECIPIENT, zipCode: "abc" } },
     });
     expect(res.statusCode).toBe(400);
     expect(JSON.parse(res.body).error.code).toBe("VALIDATION_ERROR");
