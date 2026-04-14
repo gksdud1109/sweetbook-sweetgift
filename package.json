@@ -1,0 +1,15 @@
+{
+  "name": "sweetgift",
+  "private": true,
+  "packageManager": "pnpm@10.27.0",
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter @sweetgift/api dev",
+    "build": "pnpm --filter web build",
+    "build:api": "pnpm --filter @sweetgift/api build",
+    "lint": "pnpm --filter web lint",
+    "typecheck": "pnpm --filter web typecheck",
+    "typecheck:api": "pnpm --filter @sweetgift/api type-check"
+  }
+}
+
