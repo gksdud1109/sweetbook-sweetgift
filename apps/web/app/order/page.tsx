@@ -107,7 +107,6 @@ export default function OrderPage() {
         {error ? <StatusBanner tone="error">{error}</StatusBanner> : null}
         
         <form onSubmit={handleSubmit} className="grid gap-10">
-          {/* Packaging Options */}
           <section className="animate-rise [animation-delay:100ms]">
             <h3 className="text-xs uppercase tracking-[0.4em] text-rosewood/40 font-bold mb-6">01. Premium Options</h3>
             <div className="grid gap-6">
@@ -180,7 +179,6 @@ export default function OrderPage() {
             </div>
           </section>
 
-          {/* Delivery Info */}
           <section className="animate-rise [animation-delay:200ms]">
             <h3 className="text-xs uppercase tracking-[0.4em] text-rosewood/40 font-bold mb-6">02. Delivery Info</h3>
             <Panel className="p-10 border-none bg-white shadow-2xl rounded-[40px]">

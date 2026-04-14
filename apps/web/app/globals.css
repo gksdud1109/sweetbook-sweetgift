@@ -25,7 +25,8 @@ body {
     radial-gradient(circle at top right, rgba(239, 226, 207, 0.85), transparent 24%),
     linear-gradient(180deg, #fcf7ef 0%, #f4ece0 100%);
   color: var(--foreground);
-  font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {

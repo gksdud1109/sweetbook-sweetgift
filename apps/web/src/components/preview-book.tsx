@@ -43,7 +43,6 @@ function renderPageContent(page: GeneratedPage) {
           />
         ) : null}
         
-        {/* Render Cover Stickers */}
         <StickerLayer decorations={page.decorations} />
 
         <div className="relative mt-auto bg-gradient-to-t from-cocoa via-cocoa/80 to-transparent p-10">
@@ -72,7 +71,6 @@ function renderPageContent(page: GeneratedPage) {
             />
           ) : null}
           
-          {/* Render Moment Stickers */}
           <StickerLayer decorations={page.decorations} />
 
           <div className="absolute inset-0 bg-black/5" />
@@ -179,7 +177,6 @@ export function PreviewBook({ draft }: { draft: AlbumDraftDetail }) {
         </div>
       </div>
 
-      {/* Magazine Horizontal Scroller */}
       <div className="flex gap-8 overflow-x-auto pb-12 snap-x snap-mandatory scrollbar-hide px-4 sm:px-0">
         {draft.generatedPages.map((page, index) => (
           <div
@@ -194,7 +191,6 @@ export function PreviewBook({ draft }: { draft: AlbumDraftDetail }) {
               <span>{page.type}</span>
             </div>
             <div className="paper-panel page-grid min-h-[520px] rounded-[24px] p-2 shadow-2xl relative group overflow-hidden border-none">
-              {/* Spine shadow for book feeling */}
               <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-black/5 to-transparent z-10 pointer-events-none" />
               <div className="relative h-full w-full bg-white rounded-[18px] overflow-hidden">
                 {renderPageContent(page)}
@@ -204,14 +200,12 @@ export function PreviewBook({ draft }: { draft: AlbumDraftDetail }) {
         ))}
       </div>
 
-      {/* Floating Navigator Help */}
       <div className="hidden lg:flex absolute -bottom-4 left-1/2 -translate-x-1/2 items-center gap-4 text-[10px] uppercase tracking-[0.3em] text-rosewood/40">
         <span>← Scroll to flip</span>
         <div className="h-px w-12 bg-rosewood/10" />
         <span>{draft.generatedPages.length} Pages</span>
       </div>
 
-      {/* Side Info Panel */}
       <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Panel className="lg:col-span-2 bg-white/40 border-none backdrop-blur-sm p-10 rounded-[34px]">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">

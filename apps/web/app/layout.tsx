@@ -1,8 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Noto_Sans_KR, Noto_Serif_KR } from "next/font/google";
 import type { ReactNode } from "react";
 import "./globals.css";
 import { AlbumFlowProvider } from "@/src/providers/album-flow-provider";
+
+const sans = Noto_Sans_KR({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  weight: ["400", "500", "700"],
+});
+
+const serif = Noto_Serif_KR({
+  subsets: ["latin"],
+  variable: "--font-serif",
+  weight: ["400", "700"],
+});
 
 export const metadata: Metadata = {
   title: "SweetGift",
@@ -15,8 +28,8 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="ko">
-      <body>
+    <html lang="ko" className={`${sans.variable} ${serif.variable}`}>
+      <body className="font-sans">
         <AlbumFlowProvider>
           <div className="relative min-h-screen overflow-hidden">
             <div className="pointer-events-none absolute inset-0 bg-grain opacity-90" />
@@ -27,7 +40,7 @@ export default function RootLayout({
                     SG
                   </div>
                   <div>
-                    <p className="font-serifDisplay text-xl tracking-[0.16em] text-cocoa">
+                    <p className="font-serif text-xl tracking-[0.16em] text-cocoa">
                       SweetGift
                     </p>
                     <p className="text-xs uppercase tracking-[0.28em] text-rosewood/70">
@@ -35,7 +48,7 @@ export default function RootLayout({
                     </p>
                   </div>
                 </Link>
-                <nav className="hidden gap-5 text-sm text-rosewood/80 sm:flex">
+                <nav className="hidden gap-5 text-sm font-medium text-rosewood/80 sm:flex">
                   <Link href="/create">Create Album</Link>
                   <Link href="/preview">Preview</Link>
                   <Link href="/order">Order</Link>

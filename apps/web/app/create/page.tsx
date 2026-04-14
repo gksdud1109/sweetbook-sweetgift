@@ -101,7 +101,7 @@ export default function CreatePage() {
 
       {source === "mock" ? (
         <StatusBanner>
-          현재 앱은 mock fallback을 기본값으로 유지합니다. `NEXT_PUBLIC_API_BASE_URL`이 연결되면 같은 계약으로 실제 API를 우선 호출합니다.
+          현재 앱은 mock fallback을 기본값으로 유지합니다. `NEXT_PUBLIC_API_BASE_URL`이 연결되면 실제 API를 우선 호출합니다.
         </StatusBanner>
       ) : null}
 
