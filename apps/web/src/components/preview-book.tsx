@@ -8,16 +8,23 @@ import type { Decoration } from "@/src/lib/album-flow";
 import { cn, formatDate, labelForAnniversaryType } from "@/src/lib/utils";
 
 const DECORATION_SAFE_EDGE = 8;
+const PREVIEW_DECORATION_BASE_PX = 32;
 
 function clampDecorationPercent(value: number) {
   return Math.max(DECORATION_SAFE_EDGE, Math.min(100 - DECORATION_SAFE_EDGE, value));
 }
 
-function StickerLayer({ decorations }: { decorations?: Decoration[] }) {
+function StickerLayer({
+  decorations,
+  className,
+}: {
+  decorations?: Decoration[];
+  className?: string;
+}) {
   if (!decorations || decorations.length === 0) return null;
 
   return (
-    <div className="pointer-events-none absolute inset-3 z-10" aria-hidden="true">
+    <div className={cn("pointer-events-none absolute inset-0 z-10", className)} aria-hidden="true">
       {decorations.map((deco) => (
         <div
           key={deco.id}
@@ -26,7 +33,7 @@ function StickerLayer({ decorations }: { decorations?: Decoration[] }) {
             left: `${clampDecorationPercent(deco.x)}%`,
             top: `${clampDecorationPercent(deco.y)}%`,
             transform: `translate(-50%, -50%) rotate(${deco.rotate}deg) scale(${deco.scale})`,
-            fontSize: "2.5rem",
+            fontSize: `${PREVIEW_DECORATION_BASE_PX}px`,
             userSelect: "none",
             zIndex: 5,
             textShadow: "0 10px 20px rgba(15, 23, 42, 0.18)",
@@ -39,18 +46,62 @@ function StickerLayer({ decorations }: { decorations?: Decoration[] }) {
   );
 }
 
+function ImageStage({
+  src,
+  alt,
+  decorations,
+  mode = "contain",
+  overlayClassName,
+  imageClassName,
+  className,
+}: {
+  src?: string;
+  alt: string;
+  decorations?: Decoration[];
+  mode?: "contain" | "cover";
+  overlayClassName?: string;
+  imageClassName?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "relative isolate flex h-full min-h-0 w-full items-center justify-center overflow-hidden rounded-[24px]",
+        className,
+      )}
+    >
+      {src ? (
+        <img
+          src={src}
+          alt={alt}
+          className={cn(
+            "h-full w-full",
+            mode === "cover" ? "object-cover" : "object-contain",
+            imageClassName,
+          )}
+        />
+      ) : null}
+      <StickerLayer decorations={decorations} className={overlayClassName} />
+    </div>
+  );
+}
+
 function renderPageContent(page: GeneratedPage) {
   if (page.type === "cover") {
     return (
-      <div className="relative flex h-full min-h-[360px] flex-col justify-end overflow-hidden rounded-[24px] bg-brand-dark text-white sm:min-h-[420px]">
+      <div className="relative flex h-full min-h-[360px] flex-col justify-end overflow-hidden rounded-[30px] bg-brand-dark text-white sm:min-h-[420px]">
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-secondary/20 via-brand-dark to-brand-dark" />
         {page.photoUrl ? (
-          <img
+          <ImageStage
             src={page.photoUrl}
             alt={page.title ?? "cover"}
-            className="absolute inset-0 h-full w-full object-cover opacity-50"
+            decorations={page.decorations}
+            mode="contain"
+            className="absolute inset-0 rounded-none bg-transparent"
+            overlayClassName="inset-6 sm:inset-8"
+            imageClassName="bg-brand-dark/30 p-6 opacity-70 sm:p-8"
           />
         ) : null}
-        <StickerLayer decorations={page.decorations} />
         <div className="relative z-20 mt-auto bg-gradient-to-t from-brand-dark via-brand-dark/80 to-transparent p-6 sm:p-8 lg:p-10">
           <div className="mb-6 h-1 w-12 rounded-full bg-brand-primary" />
           <p className="mb-3 text-[11px] font-black uppercase tracking-[0.4em] text-brand-primary/80">
@@ -71,16 +122,17 @@ function renderPageContent(page: GeneratedPage) {
 
   if (page.type === "moment") {
     return (
-      <div className="grid h-full gap-6 bg-white p-5 sm:p-6 lg:p-8 md:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] md:gap-8">
-        <div className="relative min-h-[260px] overflow-hidden rounded-[20px] bg-slate-50 shadow-2xl">
-          {page.photoUrl ? (
-            <img
-              src={page.photoUrl}
-              alt={page.title ?? "moment"}
-              className="h-full w-full object-cover"
-            />
-          ) : null}
-          <StickerLayer decorations={page.decorations} />
+      <div className="grid h-full gap-6 bg-white p-5 sm:p-7 lg:p-9 md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] md:gap-9">
+        <div className="min-h-[300px] overflow-hidden rounded-[24px] bg-slate-50 shadow-xl ring-1 ring-slate-100">
+          <ImageStage
+            src={page.photoUrl}
+            alt={page.title ?? "moment"}
+            decorations={page.decorations}
+            mode="contain"
+            className="h-full bg-[linear-gradient(180deg,rgba(248,250,252,1),rgba(241,245,249,0.78))]"
+            overlayClassName="inset-5"
+            imageClassName="bg-white p-5"
+          />
         </div>
         <div className="flex min-w-0 flex-col justify-center">
           <p className="mb-4 text-[11px] font-black uppercase tracking-[0.32em] text-brand-primary/40">
@@ -136,33 +188,35 @@ function renderPageContent(page: GeneratedPage) {
 
 export function PreviewBook({ draft }: { draft: AlbumDraftDetail }) {
   return (
-    <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(280px,340px)] xl:items-start">
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
-        {draft.generatedPages.map((page, index) => (
-          <div
-            key={`${page.pageNumber}-${page.type}`}
-            className="min-w-0 animate-rise"
-            style={{ animationDelay: `${Math.min(index * 100, 400)}ms` }}
-          >
-            <div className="mb-4 flex items-center justify-between px-1 sm:px-2">
-              <div className="flex items-center gap-3">
-                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brand-primary/10 text-brand-primary text-[10px] font-black">
-                  {String(page.pageNumber).padStart(2, "0")}
-                </span>
-                <span className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">{page.type}</span>
+    <div className="grid gap-8 2xl:grid-cols-[minmax(0,1fr)_360px] 2xl:items-start">
+      <div className="min-w-0">
+        <div className="custom-scrollbar -mx-2 flex snap-x snap-mandatory gap-6 overflow-x-auto px-2 pb-5 sm:pb-6">
+          {draft.generatedPages.map((page, index) => (
+            <section
+              key={`${page.pageNumber}-${page.type}`}
+              className="w-[min(100%,1180px)] shrink-0 snap-center animate-rise 2xl:w-[min(100%,1280px)]"
+              style={{ animationDelay: `${Math.min(index * 100, 400)}ms` }}
+            >
+              <div className="mb-4 flex items-center justify-between px-1 sm:px-2">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brand-primary/10 text-[10px] font-black text-brand-primary">
+                    {String(page.pageNumber).padStart(2, "0")}
+                  </span>
+                  <span className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">{page.type}</span>
+                </div>
               </div>
-            </div>
-            <div className="paper-panel relative min-h-[420px] overflow-hidden rounded-[32px] border-none p-3 shadow-liquid sm:min-h-[500px]">
-              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-black/[0.03] to-transparent sm:w-12" />
-              <div className="relative h-full w-full overflow-hidden rounded-[26px] bg-white shadow-inner">
-                {renderPageContent(page)}
+              <div className="paper-panel relative aspect-[1.42/1] w-full overflow-hidden rounded-[34px] border-none p-3 shadow-liquid sm:p-4">
+                <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-black/[0.03] to-transparent sm:w-12" />
+                <div className="relative h-full w-full overflow-hidden rounded-[28px] bg-white shadow-inner">
+                  {renderPageContent(page)}
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
+            </section>
+          ))}
+        </div>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 xl:sticky xl:top-24 xl:grid-cols-1">
+      <div className="grid gap-6 sm:grid-cols-2 2xl:sticky 2xl:top-24 2xl:grid-cols-1">
         <Panel className="rounded-[36px] border-none bg-white/40 p-8 shadow-glass backdrop-blur-xl sm:p-10">
           <div className="flex flex-col gap-6">
             <div>
@@ -200,13 +254,19 @@ export function PreviewBook({ draft }: { draft: AlbumDraftDetail }) {
 
 export function PreviewBookSkeleton() {
   return (
-    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
-      {[1, 2].map((i) => (
-        <div key={i} className="animate-pulse">
-          <div className="mb-4 h-4 w-32 rounded-lg bg-slate-100" />
-          <div className="min-h-[420px] rounded-[32px] border border-slate-100 bg-white/40 p-4 sm:min-h-[500px]" />
-        </div>
-      ))}
+    <div className="grid gap-8 2xl:grid-cols-[minmax(0,1fr)_360px] 2xl:items-start">
+      <div className="custom-scrollbar -mx-2 flex gap-6 overflow-x-auto px-2 pb-5 sm:pb-6">
+        {[1, 2].map((i) => (
+          <div key={i} className="w-[min(100%,1180px)] shrink-0 animate-pulse 2xl:w-[min(100%,1280px)]">
+            <div className="mb-4 h-4 w-32 rounded-lg bg-slate-100" />
+            <div className="aspect-[1.42/1] rounded-[34px] border border-slate-100 bg-white/40 p-4" />
+          </div>
+        ))}
+      </div>
+      <div className="grid gap-6 sm:grid-cols-2 2xl:grid-cols-1">
+        <div className="h-56 animate-pulse rounded-[36px] bg-white/50" />
+        <div className="h-64 animate-pulse rounded-[36px] bg-slate-900/80" />
+      </div>
     </div>
   );
 }

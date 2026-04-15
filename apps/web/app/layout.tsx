@@ -32,7 +32,7 @@ export default function RootLayout({
         
         <AlbumFlowProvider>
           <div className="relative min-h-screen">
-            <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 pb-12 pt-8 sm:px-10 lg:px-12">
+            <div className="relative mx-auto flex min-h-screen w-full max-w-[1800px] flex-col px-6 pb-12 pt-8 sm:px-10 lg:px-14 2xl:px-20">
               <header className="mb-12 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-4 group">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-primary text-white shadow-liquid transition-transform group-hover:scale-110 group-hover:rotate-3">
