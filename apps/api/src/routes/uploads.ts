@@ -31,7 +31,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
-// Maximum dimension before downsizing (preserves aspect ratio)
+// Maximum dimension before downsizing (preserves aspect ratio).
+// 3000px at 300 DPI = 10 inches — sufficient for standard print sizes.
 const MAX_DIMENSION = 3000;
 
 // Minimum shorter-side dimension for print quality (< this → warning)
@@ -163,7 +164,10 @@ export async function uploadRoutes(app: FastifyInstance): Promise<void> {
       throw new AppError("INTERNAL_ERROR", "Failed to read image metadata.", 500);
     }
 
-    // Convert to WebP; resize only if a dimension exceeds MAX_DIMENSION
+    // Convert to WebP; resize only if a dimension exceeds MAX_DIMENSION.
+    // fit: "inside" preserves the original aspect ratio — no cropping or stretching.
+    // withoutEnlargement: true prevents upscaling of small images.
+    // quality: 90 balances file size and print fidelity (was 85).
     let webpBuffer: Buffer;
     try {
       webpBuffer = await sharp(fileBuffer)
@@ -171,7 +175,7 @@ export async function uploadRoutes(app: FastifyInstance): Promise<void> {
           fit: "inside",
           withoutEnlargement: true,
         })
-        .webp({ quality: 85 })
+        .webp({ quality: 90 })
         .toBuffer();
     } catch {
       throw new AppError("INTERNAL_ERROR", "Failed to process image.", 500);

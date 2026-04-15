@@ -11,6 +11,7 @@
 //   TODO: pass X-Idempotency-Key from the caller when order retries are added.
 // - Mock mode: set SWEETBOOK_MOCK=true to skip real calls (local dev / CI).
 
+import { randomUUID } from "crypto";
 import { env } from "../../env.js";
 import {
   SweetBookBookResponseSchema,
@@ -34,6 +35,16 @@ export class SweetBookHttpError extends Error {
   ) {
     super(`SweetBook HTTP ${status}`);
     this.name = "SweetBookHttpError";
+  }
+}
+
+// Thrown when the upstream response body doesn't match our expected schema.
+// Kept in client.ts (not errors.ts) to avoid circular imports.
+// mapUpstreamError in errors.ts catches this by class.
+export class SweetBookResponseError extends Error {
+  constructor(detail: string) {
+    super(`SweetBook response shape invalid: ${detail}`);
+    this.name = "SweetBookResponseError";
   }
 }
 
@@ -78,9 +89,14 @@ export async function createBook(
     return mockCreateBook(payload);
   }
   const raw = await request<unknown>("POST", "/books", payload);
-  // Runtime validation: catch upstream shape changes (e.g. "id" → "bookId")
-  // before they silently corrupt our draft store.
-  return SweetBookBookResponseSchema.parse(raw);
+  // safeParse so that a shape mismatch (e.g. SweetBook renames "id" → "bookId")
+  // throws SweetBookResponseError rather than a ZodError, giving mapUpstreamError
+  // a clear, classifiable error with a useful message.
+  const result = SweetBookBookResponseSchema.safeParse(raw);
+  if (!result.success) {
+    throw new SweetBookResponseError(result.error.message);
+  }
+  return result.data;
 }
 
 // ── Orders ────────────────────────────────────────────────────────────────────
@@ -92,7 +108,11 @@ export async function createOrder(
     return mockCreateOrder(payload);
   }
   const raw = await request<unknown>("POST", "/orders", payload);
-  return SweetBookOrderResponseSchema.parse(raw);
+  const result = SweetBookOrderResponseSchema.safeParse(raw);
+  if (!result.success) {
+    throw new SweetBookResponseError(result.error.message);
+  }
+  return result.data;
 }
 
 // ── Mock implementations ──────────────────────────────────────────────────────
@@ -100,8 +120,11 @@ export async function createOrder(
 // run an end-to-end demo without a real API key.
 
 function mockCreateBook(payload: SweetBookBookPayload): SweetBookBookResponse {
+  // randomUUID: collision-free even under concurrent requests in the same ms.
+  // Date.now() caused identical IDs when two requests arrived within 1ms,
+  // silently corrupting the order_index idempotency table.
   return {
-    id: `book_mock_${Date.now()}`,
+    id: `book_mock_${randomUUID().replace(/-/g, "").slice(0, 12)}`,
     title: payload.title,
     status: "created",
     createdAt: new Date().toISOString(),
@@ -112,7 +135,7 @@ function mockCreateOrder(
   payload: SweetBookOrderPayload,
 ): SweetBookOrderResponse {
   return {
-    id: `order_mock_${Date.now()}`,
+    id: `order_mock_${randomUUID().replace(/-/g, "").slice(0, 12)}`,
     bookId: payload.bookId,
     status: "accepted",
     createdAt: new Date().toISOString(),

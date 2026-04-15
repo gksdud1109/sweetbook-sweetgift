@@ -7,7 +7,7 @@
 // each classification bucket explicitly.
 
 // env vars are set in tests/setup.ts (Jest setupFiles) before modules load
-import { SweetBookHttpError } from "../src/adapters/sweetbook/client.js";
+import { SweetBookHttpError, SweetBookResponseError } from "../src/adapters/sweetbook/client.js";
 import {
   mapUpstreamError,
   AppError,
@@ -105,6 +105,30 @@ describe("mapUpstreamError", () => {
       const result = mapUpstreamError("some string", "order");
       expect(result.code).toBe("ORDER_CREATION_FAILED");
       expect(result.statusCode).toBe(502);
+    });
+  });
+
+  describe("SweetBookResponseError (schema mismatch)", () => {
+    it("book context → BOOK_CREATION_FAILED 502 with descriptive message", () => {
+      const err = new SweetBookResponseError("Required at 'id'");
+      const result = mapUpstreamError(err, "book");
+      expect(result.code).toBe("BOOK_CREATION_FAILED");
+      expect(result.statusCode).toBe(502);
+      expect(result.message).toMatch(/shape invalid/);
+    });
+
+    it("order context → ORDER_CREATION_FAILED 502", () => {
+      const err = new SweetBookResponseError("Expected string, received number at 'bookId'");
+      const result = mapUpstreamError(err, "order");
+      expect(result.code).toBe("ORDER_CREATION_FAILED");
+      expect(result.statusCode).toBe(502);
+    });
+
+    it("is NOT classified as a generic network error (message is specific)", () => {
+      const err = new SweetBookResponseError("missing id field");
+      const result = mapUpstreamError(err, "book");
+      // Should NOT produce "Network error: ..." — that label is for ECONNREFUSED etc.
+      expect(result.message).not.toMatch(/^Network error/);
     });
   });
 });
