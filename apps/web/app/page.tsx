@@ -74,9 +74,9 @@ export default function LandingPage() {
               </div>
               
               <div className="paper-panel p-10 rounded-[32px] shadow-2xl rotate-[4deg] hover:rotate-0 transition-all duration-500 bg-brand-primary text-white border-none flex flex-col justify-center">
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-6">Editor's Note</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-6">Editor&apos;s Note</p>
                 <p className="font-serif text-2xl leading-snug italic">
-                  "우리의 일 년은<br/>생각보다 더 선명해."
+                  &ldquo;우리의 일 년은<br/>생각보다 더 선명해.&rdquo;
                 </p>
                 <p className="mt-6 text-[11px] font-bold text-white/60 tracking-widest">PRIVATE LETTER</p>
               </div>

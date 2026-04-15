@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type ReactNode } from "react";
 import type { Decoration } from "@/src/lib/album-flow";
 import { cn } from "@/src/lib/utils";
 import { Button } from "./ui";
@@ -9,7 +9,13 @@ interface DecorationEditorProps {
   decorations: Decoration[];
   onChange: (decorations: Decoration[]) => void;
   onReplaceImage?: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
+}
+
+const DECORATION_SAFE_EDGE = 8;
+
+function clampDecorationPercent(value: number) {
+  return Math.max(DECORATION_SAFE_EDGE, Math.min(100 - DECORATION_SAFE_EDGE, value));
 }
 
 const EMOJI_CATEGORIES = [
@@ -56,8 +62,8 @@ export function DecorationEditor({
       if (!containerRef.current || !draggingId) return;
 
       const rect = containerRef.current.getBoundingClientRect();
-      const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
-      const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+      const x = clampDecorationPercent(((e.clientX - rect.left) / rect.width) * 100);
+      const y = clampDecorationPercent(((e.clientY - rect.top) / rect.height) * 100);
 
       onChange(decorations.map(d => d.id === draggingId ? { ...d, x, y } : d));
     }
@@ -100,10 +106,12 @@ export function DecorationEditor({
               draggingId === deco.id && "scale-150 z-50 opacity-80"
             )}
             style={{
-              left: `${deco.x}%`,
-              top: `${deco.y}%`,
+              left: `${clampDecorationPercent(deco.x)}%`,
+              top: `${clampDecorationPercent(deco.y)}%`,
               transform: `translate(-50%, -50%) rotate(${deco.rotate}deg) scale(${deco.scale})`,
               fontSize: "2.5rem",
+              zIndex: 12,
+              textShadow: "0 10px 20px rgba(15, 23, 42, 0.18)",
             }}
             onMouseDown={(e) => {
               if (!isEditMode) return;

@@ -211,8 +211,14 @@ export function toOrderRequest(
   bookId: string,
   orderForm: OrderFormState,
 ): { bookId: string; recipient: Recipient } {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { packaging, ribbon, giftCard, ...recipient } = orderForm;
+  const recipient = {
+    name: orderForm.name,
+    phone: orderForm.phone,
+    address1: orderForm.address1,
+    address2: orderForm.address2,
+    zipCode: orderForm.zipCode,
+  };
+
   return {
     bookId,
     recipient: recipientSchema.parse(recipient),
