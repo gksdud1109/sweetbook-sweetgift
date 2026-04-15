@@ -14,6 +14,7 @@ interface ImageUploadProps {
   className?: string;
   hint?: string;
   error?: string;
+  onFilePickerReady?: (openPicker: () => void) => void;
 }
 
 export function ImageUpload({
@@ -23,12 +24,17 @@ export function ImageUpload({
   className,
   hint,
   error: validationError,
+  onFilePickerReady,
 }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
+
+  useEffect(() => {
+    onFilePickerReady?.(() => fileInputRef.current?.click());
+  }, [onFilePickerReady]);
 
   useEffect(() => {
     return () => {
@@ -59,6 +65,7 @@ export function ImageUpload({
       setUploadError(err instanceof Error ? err.message : "업로드 실패");
     } finally {
       setIsUploading(false);
+      event.target.value = "";
     }
   }
 
@@ -84,7 +91,7 @@ export function ImageUpload({
 
       <div
         className={cn(
-          "relative flex aspect-video w-full flex-col items-center justify-center overflow-hidden rounded-[24px] border-2 border-dashed border-rosewood/15 bg-white/50 transition-colors hover:bg-white/80 focus-within:border-coral focus-within:bg-white",
+          "relative flex aspect-[4/5] min-h-[320px] w-full flex-col items-center justify-center overflow-hidden rounded-[24px] border-2 border-dashed border-rosewood/15 bg-white/50 transition-colors hover:bg-white/80 focus-within:border-coral focus-within:bg-white sm:min-h-[380px] lg:min-h-[420px]",
           hasImage && "border-solid border-rosewood/10 bg-white",
           activeError && "border-red-300 bg-red-50/20",
           isUploading && "opacity-70",
@@ -143,6 +150,25 @@ export function ImageUpload({
       </div>
 
       {activeError && <p className="px-1 text-xs text-red-500">{activeError}</p>}
+
+      <div className="flex flex-wrap items-center gap-3 px-1">
+        <Button
+          type="button"
+          variant={hasImage ? "secondary" : "primary"}
+          className={cn(
+            "rounded-full px-4 py-2 text-xs font-semibold",
+            hasImage && "border-rosewood/10 bg-white/80 text-cocoa",
+          )}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {hasImage ? "사진 다시 선택" : "사진 선택"}
+        </Button>
+        {hasImage ? (
+          <span className="text-xs text-rosewood/55">
+            다른 파일을 선택하면 바로 미리보기에 반영됩니다.
+          </span>
+        ) : null}
+      </div>
 
       <input
         type="file"
