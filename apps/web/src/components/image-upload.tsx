@@ -82,7 +82,10 @@ export function ImageUpload({
           <button
             type="button"
             className="text-[11px] font-semibold uppercase tracking-[0.22em] text-rosewood/55 transition hover:text-rosewood/80"
-            onClick={() => setShowUrlInput((current) => !current)}
+            onClick={(event) => {
+              event.stopPropagation();
+              setShowUrlInput((current) => !current);
+            }}
           >
             {showUrlInput ? "URL 닫기" : "URL fallback"}
           </button>
@@ -109,7 +112,10 @@ export function ImageUpload({
                 type="button"
                 variant="secondary"
                 className="px-3 py-1.5 text-xs"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
               >
                 사진 교체
               </Button>
@@ -119,7 +125,10 @@ export function ImageUpload({
           <button
             type="button"
             className="flex flex-col items-center gap-2 p-8 text-rosewood/60"
-            onClick={() => fileInputRef.current?.click()}
+            onClick={(event) => {
+              event.stopPropagation();
+              fileInputRef.current?.click();
+            }}
           >
             <svg
               className="h-10 w-10"
@@ -159,7 +168,10 @@ export function ImageUpload({
             "rounded-full px-4 py-2 text-xs font-semibold",
             hasImage && "border-rosewood/10 bg-white/80 text-cocoa",
           )}
-          onClick={() => fileInputRef.current?.click()}
+          onClick={(event) => {
+            event.stopPropagation();
+            fileInputRef.current?.click();
+          }}
         >
           {hasImage ? "사진 다시 선택" : "사진 선택"}
         </Button>
@@ -188,6 +200,7 @@ export function ImageUpload({
             placeholder="또는 이미지 URL 직접 입력"
             value={value}
             onChange={(e) => onChange(e.target.value)}
+            onClick={(event) => event.stopPropagation()}
             className="w-full bg-transparent text-sm text-rosewood/75 outline-none placeholder:text-rosewood/35 focus:text-rosewood"
           />
         </div>

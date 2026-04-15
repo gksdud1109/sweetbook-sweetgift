@@ -149,6 +149,18 @@ export function DecorationEditor({
     [containerSize.height, containerSize.width, decorations],
   );
 
+  function shouldBypassContainerClick(target: EventTarget | null) {
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
+
+    return Boolean(
+      target.closest(
+        "button, input, textarea, select, label, a, [data-ignore-decoration-toggle='true']",
+      ),
+    );
+  }
+
   return (
     <div className="relative group/decor" onClick={(e) => e.stopPropagation()}>
       <div
@@ -158,6 +170,9 @@ export function DecorationEditor({
           isEditMode ? "ring-4 ring-brand-primary/30 scale-[1.02] z-30 shadow-liquid" : "hover:shadow-liquid cursor-pointer"
         )}
         onClick={(e) => {
+          if (shouldBypassContainerClick(e.target)) {
+            return;
+          }
           e.preventDefault();
           e.stopPropagation();
           if (!isEditMode) setShowMenu(!showMenu);
