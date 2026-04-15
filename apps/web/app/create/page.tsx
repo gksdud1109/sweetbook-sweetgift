@@ -31,10 +31,11 @@ const anniversaryOptions = ["100days", "200days", "1year", "custom"] as const;
 
 export default function CreatePage() {
   const router = useRouter();
-  const { form, setForm, setDraft, loadSample, source } = useAlbumFlow();
+  const { form, setForm, setDraft, loadSample } = useAlbumFlow();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, any>>({});
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
+  const [openCoverPicker, setOpenCoverPicker] = useState<(() => void) | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -128,25 +129,91 @@ export default function CreatePage() {
               </div>
             </section>
 
-            <div className="grid gap-8 md:grid-cols-2">
-              <InputField
-                label="기념일 날짜"
-                type="date"
-                value={form.anniversaryDate}
-                error={errors.anniversaryDate}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    anniversaryDate: event.target.value,
-                  }))
-                }
-                className="rounded-2xl border-slate-100 focus:border-brand-primary"
-              />
-              
-              <div className="md:row-span-3">
+            <div className="grid gap-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.8fr)] xl:items-start">
+              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-6">
+                <InputField
+                  label="기념일 날짜"
+                  type="date"
+                  value={form.anniversaryDate}
+                  error={errors.anniversaryDate}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      anniversaryDate: event.target.value,
+                    }))
+                  }
+                  className="rounded-2xl border-slate-100 focus:border-brand-primary sm:col-span-2 xl:col-span-2"
+                />
+                <InputField
+                  label="보내는 이"
+                  value={form.senderName}
+                  error={errors.couple?.senderName}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      senderName: event.target.value,
+                    }))
+                  }
+                  className="rounded-2xl border-slate-100 sm:col-span-1 xl:col-span-2"
+                />
+                <InputField
+                  label="받는 이"
+                  value={form.receiverName}
+                  error={errors.couple?.receiverName}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      receiverName: event.target.value,
+                    }))
+                  }
+                  className="rounded-2xl border-slate-100 sm:col-span-1 xl:col-span-2"
+                />
+                <InputField
+                  label="앨범 타이틀"
+                  className="rounded-2xl border-slate-100 sm:col-span-2 xl:col-span-3"
+                  placeholder="우리의 열두 달"
+                  value={form.title}
+                  error={errors.title}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      title: event.target.value,
+                    }))
+                  }
+                />
+                <InputField
+                  label="서브 타이틀"
+                  className="rounded-2xl border-slate-100 sm:col-span-2 xl:col-span-3"
+                  placeholder="가장 찬란했던 계절의 기록"
+                  value={form.subtitle}
+                  error={errors.subtitle}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      subtitle: event.target.value,
+                    }))
+                  }
+                />
+                <TextareaField
+                  label="마음을 전하는 편지"
+                  className="min-h-[200px] rounded-[32px] border-slate-100 sm:col-span-2 xl:col-span-6"
+                  placeholder="여기에 당신의 진심을 담아주세요."
+                  value={form.letter}
+                  error={errors.letter}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      letter: event.target.value,
+                    }))
+                  }
+                />
+              </div>
+
+              <div className="xl:sticky xl:top-24">
                 <DecorationEditor
                   decorations={form.coverDecorations || []}
                   onChange={(coverDecorations) => setForm(c => ({ ...c, coverDecorations }))}
+                  onReplaceImage={() => openCoverPicker?.()}
                 >
                   <ImageUpload
                     label="앨범 메인 표지"
@@ -158,74 +225,11 @@ export default function CreatePage() {
                         coverPhotoUrl: url,
                       }))
                     }
-                    className="aspect-[4/5] rounded-[32px] overflow-hidden border-2 border-dashed border-slate-200"
+                    className="rounded-[32px] overflow-visible border-2 border-dashed border-slate-200"
+                    onFilePickerReady={(picker) => setOpenCoverPicker(() => picker)}
                   />
                 </DecorationEditor>
               </div>
-
-              <InputField
-                label="보내는 이"
-                value={form.senderName}
-                error={errors.couple?.senderName}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    senderName: event.target.value,
-                  }))
-                }
-                className="rounded-2xl border-slate-100"
-              />
-              <InputField
-                label="받는 이"
-                value={form.receiverName}
-                error={errors.couple?.receiverName}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    receiverName: event.target.value,
-                  }))
-                }
-                className="rounded-2xl border-slate-100"
-              />
-              <InputField
-                label="앨범 타이틀"
-                className="md:col-span-1 rounded-2xl border-slate-100"
-                placeholder="우리의 열두 달"
-                value={form.title}
-                error={errors.title}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    title: event.target.value,
-                  }))
-                }
-              />
-              <InputField
-                label="서브 타이틀"
-                className="md:col-span-2 rounded-2xl border-slate-100"
-                placeholder="가장 찬란했던 계절의 기록"
-                value={form.subtitle}
-                error={errors.subtitle}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    subtitle: event.target.value,
-                  }))
-                }
-              />
-              <TextareaField
-                label="마음을 전하는 편지"
-                className="md:col-span-2 rounded-[32px] border-slate-100 min-h-[200px]"
-                placeholder="여기에 당신의 진심을 담아주세요."
-                value={form.letter}
-                error={errors.letter}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    letter: event.target.value,
-                  }))
-                }
-              />
             </div>
           </div>
         </Panel>

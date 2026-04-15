@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { EditableMoment } from "@/src/lib/album-flow";
 import { Button, InputField, Panel, TextareaField } from "@/src/components/ui";
 import { ImageUpload } from "./image-upload";
@@ -20,6 +21,8 @@ export function MomentEditor({
   onChange: (patch: Partial<EditableMoment>) => void;
   onRemove: () => void;
 }) {
+  const [openPicker, setOpenPicker] = useState<(() => void) | null>(null);
+
   return (
     <Panel className="rounded-[24px] bg-white/55 p-5">
       <div className="mb-4 flex items-center justify-between">
@@ -41,6 +44,7 @@ export function MomentEditor({
         <DecorationEditor
           decorations={moment.decorations || []}
           onChange={(decorations) => onChange({ decorations })}
+          onReplaceImage={() => openPicker?.()}
         >
           <ImageUpload
             label="추억 사진"
@@ -48,6 +52,7 @@ export function MomentEditor({
             onChange={(url) => onChange({ photoUrl: url })}
             error={errors?.photoUrl}
             hint="파일을 올리거나 URL을 입력하세요"
+            onFilePickerReady={(picker) => setOpenPicker(() => picker)}
           />
         </DecorationEditor>
         

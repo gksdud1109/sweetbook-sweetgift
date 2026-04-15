@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, type ReactNode } from "react";
+import { useState, useRef, useEffect, useMemo, type ReactNode } from "react";
 import type { Decoration } from "@/src/lib/album-flow";
 import { cn } from "@/src/lib/utils";
 import { Button } from "./ui";
@@ -13,9 +13,21 @@ interface DecorationEditorProps {
 }
 
 const DECORATION_SAFE_EDGE = 8;
+const DECORATION_FONT_SIZE_PX = 40;
+const DECORATION_SAFE_PADDING_PX = 18;
 
-function clampDecorationPercent(value: number) {
-  return Math.max(DECORATION_SAFE_EDGE, Math.min(100 - DECORATION_SAFE_EDGE, value));
+function getSafePercentBySize(size: number, scale: number) {
+  if (!size) {
+    return DECORATION_SAFE_EDGE;
+  }
+
+  const paddingPx = (DECORATION_FONT_SIZE_PX * scale) / 2 + DECORATION_SAFE_PADDING_PX;
+  return Math.min(24, Math.max(DECORATION_SAFE_EDGE, (paddingPx / size) * 100));
+}
+
+function clampDecorationBySize(value: number, size: number, scale: number) {
+  const safePercent = getSafePercentBySize(size, scale);
+  return Math.max(safePercent, Math.min(100 - safePercent, value));
 }
 
 const EMOJI_CATEGORIES = [
@@ -35,7 +47,20 @@ export function DecorationEditor({
   const [showMenu, setShowMenu] = useState(false);
   const [activeTab, setActiveMenu] = useState<number>(0);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+
+  function triggerImageReplace() {
+    if (onReplaceImage) {
+      onReplaceImage();
+      return;
+    }
+
+    const fileInput = containerRef.current?.querySelector<HTMLInputElement>(
+      "input[type='file']",
+    );
+    fileInput?.click();
+  }
 
   function handleAddEmoji(emoji: string) {
     const newDecoration: Decoration = {
@@ -54,7 +79,6 @@ export function DecorationEditor({
     onChange(decorations.filter((d) => d.id !== id));
   }
 
-  // 드래그 로직 핸들러
   useEffect(() => {
     if (!draggingId) return;
 
@@ -62,8 +86,18 @@ export function DecorationEditor({
       if (!containerRef.current || !draggingId) return;
 
       const rect = containerRef.current.getBoundingClientRect();
-      const x = clampDecorationPercent(((e.clientX - rect.left) / rect.width) * 100);
-      const y = clampDecorationPercent(((e.clientY - rect.top) / rect.height) * 100);
+      const activeDecoration = decorations.find((decoration) => decoration.id === draggingId);
+      const scale = activeDecoration?.scale ?? 1.5;
+      const x = clampDecorationBySize(
+        ((e.clientX - rect.left) / rect.width) * 100,
+        rect.width,
+        scale,
+      );
+      const y = clampDecorationBySize(
+        ((e.clientY - rect.top) / rect.height) * 100,
+        rect.height,
+        scale,
+      );
 
       onChange(decorations.map(d => d.id === draggingId ? { ...d, x, y } : d));
     }
@@ -80,12 +114,47 @@ export function DecorationEditor({
     };
   }, [draggingId, decorations, onChange]);
 
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      setContainerSize({
+        width: entry.contentRect.width,
+        height: entry.contentRect.height,
+      });
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  const renderedDecorations = useMemo(
+    () =>
+      decorations.map((decoration) => ({
+        ...decoration,
+        renderX: clampDecorationBySize(
+          decoration.x,
+          containerSize.width,
+          decoration.scale,
+        ),
+        renderY: clampDecorationBySize(
+          decoration.y,
+          containerSize.height,
+          decoration.scale,
+        ),
+      })),
+    [containerSize.height, containerSize.width, decorations],
+  );
+
   return (
     <div className="relative group/decor" onClick={(e) => e.stopPropagation()}>
-      <div 
+      <div
         ref={containerRef}
         className={cn(
-          "relative overflow-hidden rounded-[28px] transition-all duration-500 touch-none",
+          "relative overflow-visible rounded-[28px] transition-all duration-500 touch-none",
           isEditMode ? "ring-4 ring-brand-primary/30 scale-[1.02] z-30 shadow-liquid" : "hover:shadow-liquid cursor-pointer"
         )}
         onClick={(e) => {
@@ -95,41 +164,54 @@ export function DecorationEditor({
         }}
       >
         {children}
-        
+
         {/* Render Stickers */}
-        {decorations.map((deco) => (
-          <div
-            key={deco.id}
-            className={cn(
-              "sticker-item absolute select-none transition-transform duration-75",
-              isEditMode ? "cursor-grab active:cursor-grabbing" : "pointer-events-none",
-              draggingId === deco.id && "scale-150 z-50 opacity-80"
-            )}
-            style={{
-              left: `${clampDecorationPercent(deco.x)}%`,
-              top: `${clampDecorationPercent(deco.y)}%`,
-              transform: `translate(-50%, -50%) rotate(${deco.rotate}deg) scale(${deco.scale})`,
-              fontSize: "2.5rem",
-              zIndex: 12,
-              textShadow: "0 10px 20px rgba(15, 23, 42, 0.18)",
-            }}
-            onMouseDown={(e) => {
-              if (!isEditMode) return;
-              e.preventDefault();
-              e.stopPropagation();
-              setDraggingId(deco.id);
-            }}
-            onClick={(e) => {
-              if (!isEditMode) return;
-              e.preventDefault();
-              e.stopPropagation();
-              // 드래그가 아닐 때만 삭제 (단순 클릭)
-              if (!draggingId) handleRemoveDecoration(deco.id);
-            }}
-          >
-            {deco.value}
-          </div>
-        ))}
+        <div className="pointer-events-none absolute inset-[-20px] z-20">
+          {renderedDecorations.map((deco) => (
+            <div
+              key={deco.id}
+              className={cn(
+                "sticker-item pointer-events-auto absolute select-none transition-transform duration-75",
+                isEditMode ? "cursor-grab active:cursor-grabbing" : "pointer-events-none",
+                draggingId === deco.id && "scale-150 z-50 opacity-80"
+              )}
+              style={{
+                left: `${deco.renderX}%`,
+                top: `${deco.renderY}%`,
+                transform: `translate(-50%, -50%) rotate(${deco.rotate}deg) scale(${deco.scale})`,
+                fontSize: "2.5rem",
+                zIndex: 12,
+                textShadow: "0 10px 20px rgba(15, 23, 42, 0.18)",
+              }}
+              onMouseDown={(e) => {
+                if (!isEditMode) return;
+                e.preventDefault();
+                e.stopPropagation();
+                setDraggingId(deco.id);
+              }}
+            >
+              {deco.value}
+              {isEditMode ? (
+                <button
+                  type="button"
+                  aria-label="데코 삭제"
+                  className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-brand-dark text-sm text-white shadow-lg transition hover:bg-brand-primary"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleRemoveDecoration(deco.id);
+                  }}
+                >
+                  ×
+                </button>
+              ) : null}
+            </div>
+          ))}
+        </div>
 
         {/* Initial Over Menu */}
         {showMenu && !isEditMode && (
@@ -138,11 +220,11 @@ export function DecorationEditor({
               <Button 
                 type="button"
                 variant="primary" 
-                onClick={(e) => { 
+                onClick={(e) => {
                   e.preventDefault();
-                  e.stopPropagation(); 
-                  setIsEditMode(true); 
-                  setShowMenu(false); 
+                  e.stopPropagation();
+                  setIsEditMode(true);
+                  setShowMenu(false);
                 }}
                 className="bg-brand-primary hover:bg-brand-primary/90 shadow-xl min-w-[160px] rounded-2xl"
               >
@@ -151,17 +233,17 @@ export function DecorationEditor({
               <Button 
                 type="button"
                 variant="secondary" 
-                onClick={(e) => { 
+                onClick={(e) => {
                   e.preventDefault();
-                  e.stopPropagation(); 
-                  onReplaceImage?.(); 
-                  setShowMenu(false); 
+                  e.stopPropagation();
+                  triggerImageReplace();
+                  setShowMenu(false);
                 }}
                 className="bg-white/20 backdrop-blur-md text-white border-white/30 hover:bg-white/30 min-w-[160px] rounded-2xl"
               >
                 사진 교체하기
               </Button>
-              <button 
+              <button
                 type="button"
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowMenu(false); }}
                 className="text-white/60 text-[11px] mt-4 hover:text-white font-black uppercase tracking-[0.2em]"
@@ -175,7 +257,7 @@ export function DecorationEditor({
 
       {/* Edit Mode Toolbar */}
       {isEditMode && (
-        <div className="mt-6 p-8 bg-white/90 backdrop-blur-2xl rounded-[40px] border border-brand-primary/10 shadow-liquid animate-rise" onClick={(e) => e.stopPropagation()}>
+        <div className="mt-5 rounded-[32px] border border-brand-primary/10 bg-white/90 p-6 shadow-liquid animate-rise backdrop-blur-2xl sm:rounded-[40px] sm:p-8" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-primary text-white shadow-lg animate-pulse">
@@ -188,8 +270,8 @@ export function DecorationEditor({
                 <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Personalize your memory</p>
               </div>
             </div>
-            <Button 
-              variant="primary" 
+            <Button
+              variant="primary"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditMode(false); }}
               className="px-10 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-liquid bg-brand-dark hover:bg-brand-primary transition-all"
             >
@@ -213,13 +295,13 @@ export function DecorationEditor({
             ))}
           </div>
 
-          <div className="grid grid-cols-5 sm:grid-cols-10 gap-4">
+          <div className="grid grid-cols-5 gap-3 sm:grid-cols-8 sm:gap-4 lg:grid-cols-10">
             {EMOJI_CATEGORIES[activeTab].emojis.map((emoji) => (
               <button
                 key={emoji}
                 type="button"
                 onClick={(e) => { e.stopPropagation(); handleAddEmoji(emoji); }}
-                className="text-4xl hover:scale-125 transition-transform p-4 bg-white rounded-[24px] shadow-sm border border-slate-50 hover:border-brand-primary/20 hover:shadow-xl group"
+                className="group rounded-[20px] border border-slate-50 bg-white p-3 text-3xl shadow-sm transition-transform hover:scale-125 hover:border-brand-primary/20 hover:shadow-xl sm:rounded-[24px] sm:p-4 sm:text-4xl"
               >
                 <span className="group-active:scale-90 transition-transform block">{emoji}</span>
               </button>
@@ -229,7 +311,7 @@ export function DecorationEditor({
           <div className="mt-10 pt-8 border-t border-slate-100 flex items-center justify-center gap-3 text-slate-400">
             <div className="h-1.5 w-1.5 rounded-full bg-brand-primary animate-ping" />
             <p className="text-[10px] font-black uppercase tracking-[0.2em]">
-              Drag to arrange • Click to remove
+              Drag to arrange • Use x to remove
             </p>
           </div>
         </div>
