@@ -97,9 +97,9 @@ export default function OrderPage() {
       <div className="grid gap-12">
         <div className="flex items-end justify-between gap-8">
           <PageHero
-            eyebrow="Order Customization"
+            eyebrow="Order"
             title="마지막으로 디테일을 완성하세요."
-            body="선물 포장 옵션과 배송 정보를 입력해주세요. 당신의 소중한 기록이 작품으로 탄생하는 마지막 과정입니다."
+            body="선물 포장 옵션과 배송 정보를 입력하면 앨범 주문 요청을 마무리할 수 있습니다."
           />
           <ModeBadge source={source} />
         </div>
@@ -109,7 +109,7 @@ export default function OrderPage() {
         <form onSubmit={handleSubmit} className="grid gap-12">
           {/* Packaging Options */}
           <section className="animate-rise [animation-delay:100ms]">
-            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-brand-primary/40 mb-8">01. Production Options</h3>
+            <h3 className="mb-8 text-[11px] font-black uppercase tracking-[0.4em] text-brand-primary/40">01. Gift Options</h3>
             <div className="paper-panel p-10 rounded-[48px] border-none shadow-glass">
               <div className="grid gap-10 sm:grid-cols-2">
                 <div>
@@ -180,7 +180,7 @@ export default function OrderPage() {
 
           {/* Delivery Info */}
           <section className="animate-rise [animation-delay:200ms]">
-            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-brand-primary/40 mb-8">02. Shipping Details</h3>
+            <h3 className="mb-8 text-[11px] font-black uppercase tracking-[0.4em] text-brand-primary/40">02. Shipping Details</h3>
             <Panel className="p-12 rounded-[48px] bg-white/60 backdrop-blur-xl border-none shadow-liquid">
               <div className="grid gap-8">
                 <InputField
@@ -251,7 +251,7 @@ export default function OrderPage() {
                   disabled={isSubmitting} 
                   className="px-12 py-5 bg-brand-dark text-white rounded-2xl shadow-liquid hover:bg-brand-primary transition-all scale-105 font-bold"
                 >
-                  {isSubmitting ? "처리 중..." : "결제 및 주문 완료"}
+                  {isSubmitting ? "처리 중..." : "주문 요청하기"}
                 </Button>
               </div>
             </Panel>

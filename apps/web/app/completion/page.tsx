@@ -24,7 +24,7 @@ export default function CompletionPage() {
         <PageHero
           eyebrow="Completion"
           title="주문 완료 정보가 아직 없습니다."
-          body="Order Form에서 주문 생성 요청을 마친 뒤 다시 오면 `bookId`, `orderId`, `status`가 표시됩니다."
+          body="주문 요청을 완료하면 이 화면에서 앨범 제목과 주문 정보를 확인할 수 있습니다."
           actions={
             <ButtonLink href="/order">Order Form으로 이동</ButtonLink>
           }
@@ -39,18 +39,18 @@ export default function CompletionPage() {
         <div className="flex items-end justify-between gap-4">
           <PageHero
             eyebrow="Completion"
-            title="앨범 제작과 주문 요청이 모두 완료되었습니다."
-            body="MVP 완료 화면에서는 주문 결과를 단순하고 명확하게 보여줍니다. 심사자는 이 화면만 봐도 전체 happy path가 끝까지 연결된 것을 바로 이해할 수 있습니다."
+            title="앨범 주문 요청이 정상적으로 접수되었습니다."
+            body="입력한 앨범 정보와 주문 결과를 아래에서 확인할 수 있습니다."
           />
           <ModeBadge source={source} />
         </div>
         <StatusBanner tone="success">
-          주문이 정상적으로 접수되었습니다. 아래 응답 값은 계약 문서의 완료 상태 형식을 그대로 따릅니다.
+          주문 요청이 완료되었습니다. 필요하면 새 앨범을 다시 만들어 흐름을 반복해 확인할 수 있습니다.
         </StatusBanner>
         <Panel>
           <dl className="grid gap-4 text-sm text-rosewood/80">
             <div className="flex justify-between gap-4 border-b border-rosewood/10 pb-4">
-              <dt>title</dt>
+              <dt>앨범 제목</dt>
               <dd>{draft?.title ?? "-"}</dd>
             </div>
             <div className="flex justify-between gap-4 border-b border-rosewood/10 pb-4">
@@ -62,7 +62,7 @@ export default function CompletionPage() {
               <dd>{order.orderId}</dd>
             </div>
             <div className="flex justify-between gap-4 pb-1">
-              <dt>status</dt>
+              <dt>상태</dt>
               <dd>{order.status}</dd>
             </div>
           </dl>
@@ -70,13 +70,13 @@ export default function CompletionPage() {
       </div>
       <Panel className="h-fit">
         <p className="text-xs uppercase tracking-[0.3em] text-rosewood/60">
-          Next Action
+          다음 단계
         </p>
-        <h2 className="mt-3 font-serif text-3xl text-cocoa">
-          같은 흐름을 다시 데모할 수 있습니다.
+        <h2 className="mt-3 text-3xl font-semibold text-cocoa">
+          새로운 앨범을 다시 만들어볼 수 있습니다.
         </h2>
         <p className="mt-4 text-sm leading-7 text-rosewood/80">
-          상태를 초기화한 뒤 더미 데이터를 다시 불러오면, 과제 시연용 happy path를 반복해서 확인할 수 있습니다.
+          상태를 초기화한 뒤 더미 데이터를 다시 불러오면 다른 기념일 앨범도 같은 흐름으로 확인할 수 있습니다.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Button
@@ -87,7 +87,7 @@ export default function CompletionPage() {
               });
             }}
           >
-            새 앨범 시작
+            새 앨범 만들기
           </Button>
           <ButtonLink href="/create" variant="secondary">
             Create Album으로 이동

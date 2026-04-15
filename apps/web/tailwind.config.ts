@@ -9,6 +9,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        cocoa: "#1f2937",
+        rosewood: "#6b7280",
+        coral: "#f43f5e",
         brand: {
           primary: "#6366f1", // Indigo
           secondary: "#a855f7", // Purple
@@ -44,7 +47,18 @@ const config: Config = {
           "sans-serif",
         ],
         serif: [
-          "var(--font-serif)",
+          "var(--font-sans)",
+          "Pretendard JP",
+          "Pretendard",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "system-ui",
+          "Roboto",
+          "Helvetica Neue",
+          "Segoe UI",
+          "Apple SD Gothic Neo",
+          "Noto Sans KR",
+          "Malgun Gothic",
           "Iowan Old Style",
           "Palatino Linotype",
           "Georgia",

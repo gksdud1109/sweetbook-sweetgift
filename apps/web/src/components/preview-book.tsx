@@ -54,9 +54,9 @@ function renderPageContent(page: GeneratedPage) {
         <div className="relative z-20 mt-auto bg-gradient-to-t from-brand-dark via-brand-dark/80 to-transparent p-6 sm:p-8 lg:p-10">
           <div className="mb-6 h-1 w-12 rounded-full bg-brand-primary" />
           <p className="mb-3 text-[11px] font-black uppercase tracking-[0.4em] text-brand-primary/80">
-            Exclusive Anniversary
+            Anniversary Book
           </p>
-          <h3 className="font-serif text-3xl leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+          <h3 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
             {page.title}
           </h3>
           {page.body ? (
@@ -84,9 +84,9 @@ function renderPageContent(page: GeneratedPage) {
         </div>
         <div className="flex min-w-0 flex-col justify-center">
           <p className="mb-4 text-[11px] font-black uppercase tracking-[0.32em] text-brand-primary/40">
-            Scene {page.pageNumber}
+            Memory {page.pageNumber}
           </p>
-          <h3 className="mb-5 font-serif text-3xl leading-tight text-brand-dark sm:text-4xl">
+          <h3 className="mb-5 text-3xl font-semibold leading-tight text-brand-dark sm:text-4xl">
             {page.title}
           </h3>
           <div className="mb-5 h-px w-full bg-slate-100" />
@@ -104,10 +104,10 @@ function renderPageContent(page: GeneratedPage) {
     return (
       <div className="relative flex h-full min-h-[360px] flex-col items-center justify-center overflow-hidden bg-[#fdfcfb] p-8 text-center text-brand-dark sm:p-12">
         <div className="absolute left-0 top-0 h-2 w-full bg-gradient-to-r from-brand-primary/20 via-brand-secondary/20 to-brand-primary/20" />
-        <p className="mb-8 text-[11px] font-black uppercase tracking-[0.34em] text-brand-primary/40">Heartfelt Note</p>
-        <h3 className="mb-8 font-serif text-3xl tracking-tighter sm:text-5xl">{page.title}</h3>
+        <p className="mb-8 text-[11px] font-black uppercase tracking-[0.34em] text-brand-primary/40">Letter</p>
+        <h3 className="mb-8 text-3xl font-semibold tracking-tight sm:text-5xl">{page.title}</h3>
         <div className="max-w-xl">
-          <p className="whitespace-pre-wrap font-serif text-base italic leading-8 text-slate-600 sm:text-lg sm:leading-10">
+          <p className="whitespace-pre-wrap text-base leading-8 text-slate-600 sm:text-lg sm:leading-10">
             {page.body}
           </p>
         </div>
@@ -127,8 +127,8 @@ function renderPageContent(page: GeneratedPage) {
           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
         </svg>
       </div>
-      <p className="mb-4 text-[11px] font-black uppercase tracking-[0.34em] text-brand-primary/40">Fin.</p>
-      <h3 className="mb-4 font-serif text-3xl italic sm:text-4xl">{page.title}</h3>
+      <p className="mb-4 text-[11px] font-black uppercase tracking-[0.34em] text-brand-primary/40">Final Page</p>
+      <h3 className="mb-4 text-3xl font-semibold sm:text-4xl">{page.title}</h3>
       {page.body ? <p className="text-base font-medium leading-8 text-slate-400">{page.body}</p> : null}
     </div>
   );
@@ -166,8 +166,8 @@ export function PreviewBook({ draft }: { draft: AlbumDraftDetail }) {
         <Panel className="rounded-[36px] border-none bg-white/40 p-8 shadow-glass backdrop-blur-xl sm:p-10">
           <div className="flex flex-col gap-6">
             <div>
-              <p className="mb-3 text-[11px] font-black uppercase tracking-[0.34em] text-brand-primary">Masterpiece Draft</p>
-              <h2 className="font-serif text-3xl tracking-tight text-brand-dark sm:text-4xl">{draft.title}</h2>
+              <p className="mb-3 text-[11px] font-black uppercase tracking-[0.34em] text-brand-primary">Album Preview</p>
+              <h2 className="text-3xl font-semibold tracking-tight text-brand-dark sm:text-4xl">{draft.title}</h2>
               <p className="mt-4 text-base font-medium leading-8 text-slate-500">{draft.subtitle}</p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -184,13 +184,13 @@ export function PreviewBook({ draft }: { draft: AlbumDraftDetail }) {
         <div className="relative flex flex-col justify-between overflow-hidden rounded-[36px] bg-brand-dark p-8 text-white shadow-liquid sm:p-10">
           <div className="blob absolute right-[-35%] top-[-35%] h-52 w-52 bg-brand-primary/20 opacity-50 blur-3xl" />
           <div className="relative">
-            <p className="mb-4 text-[11px] font-black uppercase tracking-[0.34em] text-white/40">Process Summary</p>
+            <p className="mb-4 text-[11px] font-black uppercase tracking-[0.34em] text-white/40">Summary</p>
             <p className="text-base font-medium leading-relaxed text-white/80">
-              {draft.couple.senderName}님이 {draft.couple.receiverName}님을 위해 정성껏 빚어낸 {draft.moments.length}장의 소중한 기록입니다.
+              {draft.couple.senderName}님이 {draft.couple.receiverName}님을 위해 준비한 {draft.moments.length}개의 추억 페이지와 한 장의 편지가 앨범으로 정리되었습니다.
             </p>
           </div>
           <div className="relative mt-10 border-t border-white/10 pt-6">
-            <p className="text-[11px] font-black uppercase tracking-widest text-brand-accent italic">Quality Assurance Certified</p>
+            <p className="text-[11px] font-black uppercase tracking-widest text-brand-accent">주문 전 미리보기 확인 가능</p>
           </div>
         </div>
       </div>
@@ -221,7 +221,7 @@ export function ModeBadge({ source }: { source: "api" | "mock" }) {
           : "border-brand-secondary/20 bg-brand-secondary/5 text-brand-secondary",
       )}
     >
-      {source === "api" ? "Pro Pipeline" : "Preview Mode"}
+      {source === "api" ? "API 연결" : "미리보기 모드"}
     </div>
   );
 }

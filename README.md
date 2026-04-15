@@ -1,79 +1,225 @@
-# SweetGift 🎁
-**"흩어진 기억을 한 권의 다정한 선물로, 감성 기반 지능형 앨범 서비스"**
+# SweetGift
 
-SweetGift는 커플들이 소중한 추억을 단순히 보관하는 것을 넘어, **'다꾸(다이어리 꾸미기)'의 감성과 'AI의 지능'**을 결합해 세상에 단 하나뿐인 에디토리얼 앨범으로 만들어주는 프리미엄 기프트 플랫폼입니다.
+SweetGift는 커플이 기념일 사진, 편지, 짧은 추억 기록을 입력하면 선물용 앨범 초안을 만들고, SweetBook의 `Books API`와 `Orders API`로 실제 제작/주문까지 이어지는 웹 서비스입니다.
 
----
+이 저장소는 스위트북 바이브코딩 풀스택 과제 제출용 구현입니다.
 
-## 🚀 왜 'SweetGift' 인가요? (핵심 경쟁력)
+## 서비스 소개
 
-### 1. 지능형 스크랩북 (Intelligent Scrapbook)
-- **Smart Dropzone**: 사진 여러 장을 던지기만 하세요. 자동으로 추억 카드가 생성되고 업로드가 시작됩니다.
-- **Auto-Fill Metadata**: 사진의 촬영 날짜를 분석해 타임라인을 자동으로 구성합니다. 사용자는 기억을 더듬을 필요가 없습니다.
-- **Poetic Curation**: 사진의 분위기에 어울리는 시적인 문구를 AI가 자동으로 추천하여 작문의 부담을 없앴습니다.
+- 서비스명: `SweetGift`
+- 한 줄 설명: 사진과 편지를 기념일 선물용 앨범으로 정리해 주는 커플 대상 포토북 제작 서비스
+- 핵심 사용자: `100일`, `200일`, `1주년` 같은 기념일 선물을 준비하는 커플
+- 해결하려는 문제:
+  - 사진은 많지만 선물용 앨범으로 정리하는 과정이 번거롭다
+  - 추억 설명, 표지 이미지, 편지, 배송 정보까지 한 번에 준비하기 어렵다
+  - 포토북 제작과 주문 과정이 분리되어 있어 사용 흐름이 끊긴다
 
-### 2. 스윗 데코 (Sweet-Decor)
-- **Interactive Sticking**: 사진 위 원하는 곳 어디든 ❤️, ✨, 🌸 등 감성 이모지 스티커를 붙여보세요. 
-- **Personalization**: 단순한 사진첩이 아닌, 사용자의 취향이 듬뿍 담긴 '나만의 작품'으로 변모합니다.
+## 주요 기능
 
-### 3. 몰입형 감상 경험 (Experience)
-- **Magazine-style Preview**: 실제 사진 잡지를 한 페이지씩 넘겨보는 듯한 **가로형 스크롤 뷰어**와 책등 그림자 효과를 통해 실제 결과물의 물성을 미리 체험합니다.
-- **Mood BGM Player**: 앨범 감상 중 Classic, Acoustic, Jazz 등 분위기에 맞는 음악을 선택해 정서적 몰입감을 극대화할 수 있습니다.
+1. 기념일 정보, 커플 이름, 편지, 추억 데이터를 입력해 앨범 초안을 생성합니다.
+2. 표지 이미지와 추억 사진을 업로드할 수 있습니다.
+3. 추억 카드에 데코레이션 이모지를 배치해 앨범을 꾸밀 수 있습니다.
+4. 생성된 페이지를 미리보기 화면에서 확인한 뒤 인쇄용 책 생성을 요청할 수 있습니다.
+5. 배송 정보와 포장 옵션을 입력해 주문을 생성할 수 있습니다.
+6. 더미 데이터와 mock 모드를 제공해 API 키가 없어도 기본 흐름을 바로 확인할 수 있습니다.
 
-### 4. 실무 수준의 커머스 옵션
-- **Custom Packaging**: 용지 재질(무광/유광), 리본 포장(Red/Gold) 옵션을 직접 선택할 수 있습니다.
-- **Dynamic Billing**: 선택한 옵션(기프트 카드 등)에 따라 실시간으로 변하는 가격 요약 정보를 제공합니다.
+## 화면 흐름
 
----
+1. `Landing`
+2. `Create Album`
+3. `Album Preview`
+4. `Order`
+5. `Completion`
 
-## 🛠 실행 방법 (Quick Start)
+## 기술 스택
 
-### 설치 및 설정
+### Frontend
+
+- `Next.js` App Router
+- `TypeScript`
+- `Tailwind CSS`
+
+### Backend
+
+- `Fastify`
+- `TypeScript`
+- `Zod`
+- `better-sqlite3`
+- `sharp`
+
+## 사용한 API 목록
+
+### SweetBook API
+
+| API | 용도 |
+| --- | --- |
+| `POST /books` | 앨범 초안을 실제 제작 가능한 book으로 생성 |
+| `POST /orders` | 생성된 book을 기반으로 주문 생성 |
+
+### 프로젝트 내부 API
+
+| API | 용도 |
+| --- | --- |
+| `POST /api/v1/uploads` | 이미지 업로드 및 서버 정적 파일 URL 반환 |
+| `POST /api/v1/album-drafts` | 입력 데이터를 바탕으로 앨범 초안/미리보기 페이지 생성 |
+| `GET /api/v1/album-drafts/:draftId` | 저장된 앨범 초안 조회 |
+| `GET /api/v1/recent-drafts` | 최근 생성한 앨범 초안 조회 |
+| `POST /api/v1/books` | SweetBook `Books API` 호출 |
+| `POST /api/v1/orders` | SweetBook `Orders API` 호출 |
+
+### 구현 방식
+
+과제 안내문에 따라 공식 SDK 대신 `SweetBook REST API direct integration` 방식을 사용했습니다.  
+백엔드의 [client.ts](/Users/hanyoung-jeong/Development/sweetgift/apps/api/src/adapters/sweetbook/client.ts) 에서 `fetch` 기반 adapter로 SweetBook API를 호출합니다.
+
+## 실행 방법
+
+### 1. 의존성 설치
+
 ```bash
-# 1. 의존성 설치
 pnpm install
-
-# 2. 환경 변수 설정
-cp .env.example .env
-
-# 3. .env 파일에 SweetBook API Key 입력 (또는 SWEETBOOK_MOCK=true 설정)
 ```
 
-### 실행
+### 2. 환경 변수 설정
+
+루트 `.env` 파일을 생성합니다.
+
 ```bash
-# 프론트엔드와 백엔드를 동시에 실행합니다.
+cp .env.example .env
+```
+
+필수 환경 변수:
+
+```env
+PORT=3001
+CORS_ORIGIN=http://localhost:3000
+SWEETBOOK_API_KEY=YOUR_SANDBOX_KEY
+SWEETBOOK_BASE_URL=https://api-sandbox.sweetbook.com/v1
+SWEETBOOK_MOCK=false
+BASE_URL=http://localhost:3001
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
+```
+
+로컬 데모만 빠르게 확인하려면 아래처럼 mock 모드로 실행할 수 있습니다.
+
+```env
+SWEETBOOK_MOCK=true
+```
+
+### 3. 실행
+
+```bash
 pnpm dev
 ```
-- **Frontend**: `http://localhost:3000`
-- **Backend**: `http://localhost:3001` (API 및 정적 파일 서빙)
 
----
+`pnpm dev`는 프론트엔드와 백엔드를 함께 실행합니다.
 
-## 📡 사용한 API 목록
+개별 실행이 필요하면 아래 명령을 사용할 수 있습니다.
 
-| API 엔드포인트 | 용도 | 사용 기술 |
-| :--- | :--- | :--- |
-| `POST /api/v1/uploads` | 이미지 업로드 및 UUID 기반 파일 관리 | Fastify Multipart |
-| `POST /api/v1/album-drafts` | 앨범 레이아웃 계산 및 초안 생성 | Zod Validation |
-| `POST /api/v1/books` | **SweetBook Books API** 연동 (도서 생성) | SweetBook SDK |
-| `POST /api/v1/orders` | **SweetBook Orders API** 연동 (주문 접수) | SweetBook SDK |
+```bash
+pnpm dev:web
+pnpm dev:api
+```
 
----
+### 4. 접속 주소
 
-## 🤖 AI 협업 및 설계 의도
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:3001`
+- Health Check: `http://localhost:3001/api/v1/health`
 
-본 프로젝트는 **AI 에이전트와 시니어 개발자의 긴밀한 협업**을 통해 단기간에 높은 완성도를 달성했습니다.
+## 데모 방법
 
-- **Claude Code**: 시스템 아키텍처 설계 및 백엔드 비즈니스 로직(DB 영속성, 이미지 처리) 구현.
-- **Gemini CLI (Google)**: 프론트엔드 UX 혁신(지능형 드롭존, 스티커 편집기), Typography 폴리싱, QA 검증.
-- **설계 핵심**: "Frictionless Input, Emotional Feedback" — 사용자의 입력은 최소화하고, 결과물에서 느끼는 감동은 최대화하는 데 집중했습니다.
+1. `pnpm dev`로 서버를 실행합니다.
+2. `http://localhost:3000/create`로 이동합니다.
+3. `샘플 데이터 로드` 버튼을 눌러 더미 데이터를 채웁니다.
+4. 필요하면 표지/추억 사진을 업로드하고 데코레이션을 추가합니다.
+5. `앨범 초안 생성` 후 미리보기 화면으로 이동합니다.
+6. `실물 도서로 제작하기`를 눌러 book 생성을 요청합니다.
+7. 주문 화면에서 배송 정보를 입력하고 주문을 완료합니다.
 
----
+## 더미 데이터
 
-## ✅ 품질 보증 (QA)
-- `pnpm typecheck`: TypeScript 정적 분석 100% 통과.
-- `pnpm build`: Next.js 14 프로덕션 빌드 성공.
-- **Responsive Design**: 데스크탑 매거진 뷰부터 모바일 최적화 레이아웃까지 완벽 대응.
+- 더미 사진: [apps/web/public/dummy/photos](/Users/hanyoung-jeong/Development/sweetgift/apps/web/public/dummy/photos)
+- 샘플 초안 데이터: [apps/web/src/data/sample-draft.ts](/Users/hanyoung-jeong/Development/sweetgift/apps/web/src/data/sample-draft.ts)
 
----
-**SweetGift**는 기술로 추억의 온기를 더합니다. _우리의 소중한 순간들이 종이 위에서 영원히 빛날 수 있도록._
+## AI 도구 사용 내역
+
+| AI 도구 | 활용 내용 |
+| --- | --- |
+| `Codex` | 프론트엔드 구조화, README/계약/QA 보조, 구현 검토 |
+| `Claude` | 백엔드 구조 설계, API/스토어/테스트 보강, 리뷰 프롬프트 및 에이전트 규칙 정리 |
+| `Gemini` | UI 카피라이팅, UX polishing 아이디어 정리 |
+
+AI 도구는 구현 보조와 설계 정리에 사용했고, 최종 요구사항 해석과 기능 범위 결정은 직접 검토하며 조정했습니다.
+
+## 설계 의도
+
+- 입력은 가볍게, 결과물은 선물답게 보이도록 구성했습니다.
+- 사용자는 기념일 정보, 사진, 편지 정도만 입력하고 나머지 구성은 초안 생성 흐름에서 정리되게 했습니다.
+- SweetBook API는 프론트엔드에서 직접 호출하지 않고 백엔드에서만 관리해 API Key가 노출되지 않도록 했습니다.
+- 과제 요구사항에 맞춰 `Books API`, `Orders API`, 더미 데이터, 로컬 실행 재현성을 우선했습니다.
+
+## 비즈니스 가능성
+
+- 1차 타겟은 커플 기념일 선물 시장입니다.
+- 이후 확장 가능 영역:
+  - 웨딩 포토북
+  - 가족 여행 앨범
+  - 육아 성장 기록
+  - 반려동물 추억 앨범
+- 단순 인쇄 주문이 아니라 “입력 -> 편집 -> 선물 제작” 경험을 묶어 주는 서비스로 확장할 수 있습니다.
+
+## 더 시간이 있었다면 추가할 기능
+
+- 사진 EXIF 기반 날짜 자동 추출 고도화
+- 더 자연스러운 추억 입력용 bulk editor
+- 실제 SweetBook 상품 옵션과 더 정밀하게 맞춘 편집 레이아웃
+- 주문 상태 조회
+- 모바일 입력 UX 보강
+- 실제 Sandbox/Live 연동 smoke test 자동화
+
+## 테스트 및 검증
+
+주요 검증 대상:
+
+- 백엔드 route 테스트
+- 업로드 validation 테스트
+- SweetBook upstream error mapping 테스트
+- 프론트 typecheck / build
+
+예시 명령:
+
+```bash
+pnpm --filter @sweetgift/api test
+pnpm --filter @sweetgift/api type-check
+pnpm --filter web typecheck
+pnpm --filter web build
+```
+
+## 제출 전 확인 사항
+
+- 실제 API 키는 커밋하지 않습니다.
+- GitHub 저장소는 `Public`으로 제출해야 합니다.
+- Google Form 서술형 문항과 GitHub URL 제출은 별도로 진행해야 합니다.
+
+## 현재 한계와 보충 필요 사항
+
+1. SweetBook Sandbox 실연동은 API 키 유효성 검증이 추가로 필요합니다.
+   - 현재 코드상 연동 경로는 구현되어 있지만, 실제 Sandbox 키 기준 smoke test를 다시 확인해야 합니다.
+2. `POST /api/v1/books`의 동시성 처리에는 TODO가 남아 있습니다.
+   - 같은 draft에 대한 매우 짧은 동시 요청은 실서비스 기준 보강 여지가 있습니다.
+3. 프론트 편집 경험은 MVP 수준입니다.
+   - bulk 입력, 자동 문구 추천, 모바일 입력 최적화는 추가 개선 여지가 있습니다.
+4. 실제 심사 대응력을 높이려면 README와 함께 시연 이미지 또는 짧은 녹화본을 첨부하는 편이 좋습니다.
+
+## 저장소 구조
+
+```text
+apps/
+  api/        Fastify backend
+  web/        Next.js frontend
+packages/
+  contracts/  shared request/response schemas
+docs/         MVP contract, QA, review notes
+skills/       agent skill documents
+```
