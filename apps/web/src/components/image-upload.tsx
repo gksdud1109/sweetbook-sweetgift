@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { uploadFile } from "@/src/lib/api-client";
 import { cn } from "@/src/lib/utils";
 import { Button } from "./ui";
@@ -28,8 +28,17 @@ export function ImageUpload({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showUrlInput, setShowUrlInput] = useState(false);
 
-  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+  useEffect(() => {
+    return () => {
+      if (previewUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -42,11 +51,12 @@ export function ImageUpload({
     try {
       const uploadedUrl = await uploadFile(file);
       onChange(uploadedUrl);
-      // Once uploaded, we can clear the local preview and use the real URL
+      if (localUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(localUrl);
+      }
       setPreviewUrl(null);
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "업로드 실패");
-      // Keep local preview so user sees what they tried to upload
     } finally {
       setIsUploading(false);
     }
@@ -54,18 +64,28 @@ export function ImageUpload({
 
   const displayUrl = previewUrl || value;
   const activeError = uploadError || validationError;
+  const hasImage = Boolean(displayUrl);
 
   return (
     <div className={cn("grid gap-3", className)}>
       <div className="flex items-center justify-between text-sm text-cocoa">
         <span>{label}</span>
-        {hint ? <span className="text-xs text-rosewood/60">{hint}</span> : null}
+        <div className="flex items-center gap-3">
+          {hint ? <span className="text-xs text-rosewood/60">{hint}</span> : null}
+          <button
+            type="button"
+            className="text-[11px] font-semibold uppercase tracking-[0.22em] text-rosewood/55 transition hover:text-rosewood/80"
+            onClick={() => setShowUrlInput((current) => !current)}
+          >
+            {showUrlInput ? "URL 닫기" : "URL fallback"}
+          </button>
+        </div>
       </div>
 
       <div
         className={cn(
           "relative flex aspect-video w-full flex-col items-center justify-center overflow-hidden rounded-[24px] border-2 border-dashed border-rosewood/15 bg-white/50 transition-colors hover:bg-white/80 focus-within:border-coral focus-within:bg-white",
-          displayUrl && "border-solid border-rosewood/10 bg-white",
+          hasImage && "border-solid border-rosewood/10 bg-white",
           activeError && "border-red-300 bg-red-50/20",
           isUploading && "opacity-70",
         )}
@@ -132,16 +152,20 @@ export function ImageUpload({
         onChange={handleFileChange}
       />
 
-      {/* Manual URL fallback (always available for flexibility) */}
-      <div className="mt-1">
-        <input
-          type="text"
-          placeholder="또는 이미지 URL 직접 입력"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full bg-transparent px-1 text-xs text-rosewood/50 outline-none focus:text-rosewood/80"
-        />
-      </div>
+      {showUrlInput || !hasImage ? (
+        <div className="rounded-[18px] border border-rosewood/10 bg-white/70 px-4 py-3">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-rosewood/50">
+            Direct URL
+          </p>
+          <input
+            type="text"
+            placeholder="또는 이미지 URL 직접 입력"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full bg-transparent text-sm text-rosewood/75 outline-none placeholder:text-rosewood/35 focus:text-rosewood"
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

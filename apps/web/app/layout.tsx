@@ -1,19 +1,14 @@
 import type { Metadata } from "next";
+import localFont from "next/font/local";
 import Link from "next/link";
-import { Inter, Noto_Serif_KR } from "next/font/google";
 import type { ReactNode } from "react";
 import "./globals.css";
 import { AlbumFlowProvider } from "@/src/providers/album-flow-provider";
 
-const sans = Inter({
-  subsets: ["latin"],
+const sans = localFont({
+  src: "./fonts/PretendardVariable.ttf",
   variable: "--font-sans",
-});
-
-const serif = Noto_Serif_KR({
-  subsets: ["latin"],
-  variable: "--font-serif",
-  weight: ["400", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -27,7 +22,7 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="ko" className={`${sans.variable} ${serif.variable}`}>
+    <html lang="ko" className={sans.variable}>
       <body className="font-sans selection:bg-brand-primary/20 selection:text-brand-primary">
         <div className="liquid-bg">
           <div className="blob top-[-10%] left-[-10%] animate-blob" />

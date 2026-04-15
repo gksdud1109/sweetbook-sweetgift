@@ -9,7 +9,6 @@ import {
   Button,
   ButtonLink,
   PageHero,
-  Panel,
   StatusBanner,
 } from "@/src/components/ui";
 
@@ -114,14 +113,14 @@ export function PreviewPageClient() {
   }
 
   return (
-    <div className="grid gap-12 pb-20 relative pt-12">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+    <div className="grid gap-10 pb-16 pt-8 sm:pt-10">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <PageHero
           eyebrow="Preview & Review"
           title="당신의 소중한 기록이 작품이 되는 순간."
           body="에디토리얼 레이아웃으로 재구성된 앨범을 확인해보세요. 모든 페이지는 실제 인쇄 공격에 맞춰 정밀하게 설계되었습니다. 만족스러우시다면 인쇄 공정으로 전달할 수 있습니다."
         />
-        <div className="flex flex-col items-end gap-4">
+        <div className="flex flex-wrap items-center gap-3 lg:max-w-[280px] lg:justify-end">
           <ModeBadge source={source} />
           {source === "api" ? (
             <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-lg">Realtime Backend Sync Active</p>
@@ -133,18 +132,16 @@ export function PreviewPageClient() {
 
       {error ? <StatusBanner tone="error" className="rounded-2xl shadow-sm">{error}</StatusBanner> : null}
 
-      <div className="mt-12">
-        <PreviewBook draft={draft} />
-      </div>
+      <PreviewBook draft={draft} />
 
-      <div className="flex flex-wrap items-center justify-end gap-6 pt-12 border-t border-slate-100">
+      <div className="flex flex-wrap items-center justify-end gap-4 border-t border-slate-100 pt-8">
         <ButtonLink href="/create" variant="secondary" className="px-8 py-4 rounded-2xl border-slate-200 text-slate-500 hover:bg-slate-50">
           편집기로 돌아가기
         </ButtonLink>
         <Button 
           onClick={handleCreateBook} 
           disabled={isCreatingBook}
-          className="px-12 py-4 rounded-2xl bg-brand-dark text-white shadow-liquid hover:bg-brand-primary transition-all scale-105 active:scale-95"
+          className="rounded-2xl bg-brand-dark px-12 py-4 text-white shadow-liquid transition-all hover:bg-brand-primary hover:-translate-y-0.5 active:translate-y-0"
         >
           {isCreatingBook ? "전송 중..." : "실물 도서로 제작하기"}
         </Button>

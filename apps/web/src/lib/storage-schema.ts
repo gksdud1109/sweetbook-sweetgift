@@ -4,6 +4,7 @@ import {
   anniversaryTypeSchema,
   createBookResponseSchema,
   createOrderResponseSchema,
+  decorationSchema,
 } from "@sweetgift/contracts";
 
 export const editableMomentSchema = z.object({
@@ -12,6 +13,7 @@ export const editableMomentSchema = z.object({
   title: z.string(),
   body: z.string(),
   photoUrl: z.string(),
+  decorations: z.array(decorationSchema).default([]),
 });
 
 export const albumDraftFormStateSchema = z.object({
@@ -23,6 +25,7 @@ export const albumDraftFormStateSchema = z.object({
   subtitle: z.string(),
   letter: z.string(),
   coverPhotoUrl: z.string(),
+  coverDecorations: z.array(decorationSchema).default([]),
   moments: z.array(editableMomentSchema),
 });
 

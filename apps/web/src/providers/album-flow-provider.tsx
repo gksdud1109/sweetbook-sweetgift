@@ -96,12 +96,15 @@ export function AlbumFlowProvider({ children }: { children: ReactNode }) {
             subtitle: draft.subtitle,
             letter: draft.letter,
             coverPhotoUrl: draft.coverPhotoUrl,
+            coverDecorations:
+              draft.generatedPages.find((page) => page.type === "cover")?.decorations ?? [],
             moments: draft.moments.map((moment) => ({
               id: moment.id,
               date: moment.date,
               title: moment.title,
               body: moment.body,
               photoUrl: moment.photoUrl,
+              decorations: moment.decorations ?? [],
             })),
           },
         }));

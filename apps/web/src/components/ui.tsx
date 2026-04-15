@@ -160,7 +160,11 @@ export function TextareaField({
 export function StatusBanner({
   tone = "neutral",
   children,
-}: PropsWithChildren<{ tone?: "neutral" | "error" | "success" }>) {
+  className,
+}: PropsWithChildren<{
+  tone?: "neutral" | "error" | "success";
+  className?: string;
+}>) {
   return (
     <div
       className={cn(
@@ -169,6 +173,7 @@ export function StatusBanner({
           "border-rosewood/10 bg-white/70 text-rosewood/80",
         tone === "error" && "border-red-200 bg-red-50 text-red-700",
         tone === "success" && "border-emerald-200 bg-emerald-50 text-emerald-700",
+        className,
       )}
     >
       {children}
@@ -180,7 +185,12 @@ export function StepPill({
   active,
   children,
   onClick,
-}: PropsWithChildren<{ active?: boolean; onClick?: () => void }>) {
+  className,
+}: PropsWithChildren<{
+  active?: boolean;
+  onClick?: () => void;
+  className?: string;
+}>) {
   return (
     <button
       type="button"
@@ -190,6 +200,7 @@ export function StepPill({
         active
           ? "border-cocoa bg-cocoa text-white"
           : "border-rosewood/10 bg-white/70 text-rosewood hover:bg-white",
+        className,
       )}
     >
       {children}

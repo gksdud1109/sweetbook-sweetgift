@@ -44,7 +44,8 @@ export function SmartDropzone({ onMomentsAdded, maxCount }: SmartDropzoneProps) 
           date,
           title: "새로운 추억",
           body: randomCaption,
-          photoUrl
+          photoUrl,
+          decorations: [],
         });
       } catch (err) {
         console.error("Upload failed for file:", file.name, err);
