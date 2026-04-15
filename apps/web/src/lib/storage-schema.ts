@@ -18,6 +18,7 @@ export const editableMomentSchema = z.object({
 
 export const albumDraftFormStateSchema = z.object({
   anniversaryType: anniversaryTypeSchema,
+  anniversaryLabel: z.string().default("100일"),
   anniversaryDate: z.string(),
   senderName: z.string(),
   receiverName: z.string(),

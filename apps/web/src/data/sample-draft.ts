@@ -2,6 +2,7 @@ import type { AlbumDraftFormState } from "@/src/lib/album-flow";
 
 export const sampleDraftForm: AlbumDraftFormState = {
   anniversaryType: "1year",
+  anniversaryLabel: "1주년",
   anniversaryDate: "2026-04-20",
   senderName: "민수",
   receiverName: "지은",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type { EditableMoment } from "@/src/lib/album-flow";
 import { Button, InputField, Panel, TextareaField } from "@/src/components/ui";
 import { ImageUpload } from "./image-upload";
@@ -22,6 +22,9 @@ export function MomentEditor({
   onRemove: () => void;
 }) {
   const [openPicker, setOpenPicker] = useState<(() => void) | null>(null);
+  const handleFilePickerReady = useCallback((picker: () => void) => {
+    setOpenPicker(() => picker);
+  }, []);
 
   return (
     <Panel className="rounded-[24px] bg-white/55 p-5">
@@ -52,7 +55,7 @@ export function MomentEditor({
             onChange={(url) => onChange({ photoUrl: url })}
             error={errors?.photoUrl}
             hint="파일을 올리거나 URL을 입력하세요"
-            onFilePickerReady={(picker) => setOpenPicker(() => picker)}
+            onFilePickerReady={handleFilePickerReady}
           />
         </DecorationEditor>
         

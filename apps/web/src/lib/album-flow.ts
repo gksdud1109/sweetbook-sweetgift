@@ -25,6 +25,7 @@ export type EditableMoment = {
 
 export type AlbumDraftFormState = {
   anniversaryType: AnniversaryType;
+  anniversaryLabel: string;
   anniversaryDate: string;
   senderName: string;
   receiverName: string;
@@ -66,6 +67,7 @@ function createBlankMoment(index: number): EditableMoment {
 export function createInitialFormState(): AlbumDraftFormState {
   return {
     anniversaryType: "100days",
+    anniversaryLabel: "100일",
     anniversaryDate: "",
     senderName: "",
     receiverName: "",
@@ -158,7 +160,7 @@ export function addBlankMoment(form: AlbumDraftFormState) {
 }
 
 export function removeMoment(form: AlbumDraftFormState, id: string) {
-  if (form.moments.length <= 3) {
+  if (form.moments.length <= 1) {
     return form;
   }
 
@@ -183,6 +185,25 @@ export function toDraftRequest(
     return new URL(value.trim(), window.location.origin).toString();
   };
 
+  const normalizedMoments = form.moments
+    .map((moment) => ({
+      ...moment,
+      date: moment.date.trim(),
+      title: moment.title.trim(),
+      body: moment.body.trim(),
+      photoUrl: moment.photoUrl.trim(),
+    }))
+    .filter((moment) => {
+      const isCompletelyEmpty =
+        moment.date === "" &&
+        moment.title === "" &&
+        moment.body === "" &&
+        moment.photoUrl === "" &&
+        moment.decorations.length === 0;
+
+      return !isCompletelyEmpty;
+    });
+
   return createAlbumDraftRequestSchema.parse({
     anniversaryType: form.anniversaryType,
     anniversaryDate: form.anniversaryDate,
@@ -194,7 +215,7 @@ export function toDraftRequest(
     subtitle: form.subtitle.trim(),
     letter: form.letter.trim(),
     coverPhotoUrl: toAbsoluteUrl(form.coverPhotoUrl),
-    moments: form.moments
+    moments: normalizedMoments
       .slice()
       .sort((a, b) => a.date.localeCompare(b.date))
       .map((moment) => ({

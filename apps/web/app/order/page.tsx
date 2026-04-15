@@ -260,37 +260,37 @@ export default function OrderPage() {
       </div>
 
       <aside className="lg:sticky lg:top-24 animate-rise [animation-delay:300ms]">
-        <Panel className="p-12 rounded-[48px] bg-brand-dark text-white border-none shadow-liquid overflow-hidden relative">
+        <div className="relative overflow-hidden rounded-[48px] border border-brand-dark/10 bg-brand-dark p-12 text-white shadow-liquid">
           <div className="blob absolute top-[-20%] right-[-20%] w-48 h-48 bg-brand-primary/30 blur-3xl opacity-40" />
           
-          <p className="text-[11px] font-black uppercase tracking-[0.5em] text-brand-primary mb-8">Summary & Pricing</p>
-          <h2 className="font-serif text-4xl mb-10 tracking-tight">{draft?.title ?? "Your Album"}</h2>
+          <p className="relative mb-8 text-[11px] font-black uppercase tracking-[0.5em] text-brand-light">Summary & Pricing</p>
+          <h2 className="relative mb-10 font-serif text-4xl tracking-tight text-white">{draft?.title ?? "Your Album"}</h2>
           
-          <dl className="grid gap-5 text-sm mb-12">
-            <div className="flex justify-between text-white/50">
+          <dl className="relative mb-12 grid gap-5 text-sm">
+            <div className="flex justify-between text-white/70">
               <dt>기본 제작 (High-end)</dt>
               <dd className="font-bold text-white">₩35,000</dd>
             </div>
-            <div className="flex justify-between text-white/50">
+            <div className="flex justify-between text-white/70">
               <dt>전문 에디토리얼 레이아웃</dt>
               <dd className="font-bold text-white">₩0</dd>
             </div>
             {orderForm.giftCard && (
-              <div className="flex justify-between text-brand-primary font-black uppercase tracking-widest">
+              <div className="flex justify-between font-black uppercase tracking-widest text-brand-light">
                 <dt>Premium Gift Card</dt>
                 <dd>+ ₩2,000</dd>
               </div>
             )}
-            <div className="h-px bg-white/10 my-4" />
+            <div className="my-4 h-px bg-white/15" />
             <div className="flex justify-between text-2xl font-black">
-              <dt className="tracking-tighter">TOTAL</dt>
-              <dd className="text-brand-primary">₩{orderForm.giftCard ? "37,000" : "35,000"}</dd>
+              <dt className="tracking-tighter text-white">TOTAL</dt>
+              <dd className="text-brand-light">₩{orderForm.giftCard ? "37,000" : "35,000"}</dd>
             </div>
           </dl>
 
-          <div className="bg-white/5 backdrop-blur-md p-8 rounded-[32px] border border-white/5">
-            <p className="text-[10px] font-black uppercase tracking-widest text-brand-primary mb-4">Confirmed Specs</p>
-            <ul className="text-[13px] space-y-3 font-medium text-white/70">
+          <div className="relative rounded-[32px] border border-white/10 bg-white/10 p-8 backdrop-blur-md">
+            <p className="mb-4 text-[10px] font-black uppercase tracking-widest text-brand-light">Confirmed Specs</p>
+            <ul className="space-y-3 text-[13px] font-medium text-white/85">
               <li className="flex items-center gap-3">
                 <span className="h-1.5 w-1.5 rounded-full bg-brand-primary" />
                 {orderForm.packaging === "matte" ? "고급 무광 프리미엄 용지" : "선명한 유광 하이글로시 용지"}
@@ -305,7 +305,7 @@ export default function OrderPage() {
               </li>
             </ul>
           </div>
-        </Panel>
+        </div>
       </aside>
     </div>
   );

@@ -20,6 +20,7 @@ import {
   type PersistedFlow,
   type RuntimeSource,
 } from "@/src/lib/album-flow";
+import { labelForAnniversaryType } from "@/src/lib/utils";
 import {
   clearFlowSnapshot,
   readFlowSnapshot,
@@ -89,6 +90,7 @@ export function AlbumFlowProvider({ children }: { children: ReactNode }) {
           source,
           form: {
             anniversaryType: draft.anniversaryType,
+            anniversaryLabel: labelForAnniversaryType(draft.anniversaryType),
             anniversaryDate: draft.anniversaryDate,
             senderName: draft.couple.senderName,
             receiverName: draft.couple.receiverName,

@@ -28,7 +28,11 @@ export function PreviewPageClient() {
 
     const draftId = draftIdFromQuery;
 
-    if (source === "mock" && draft?.draftId === draftId) {
+    if (source === "mock") {
+      return;
+    }
+
+    if (draft?.draftId === draftId) {
       return;
     }
 

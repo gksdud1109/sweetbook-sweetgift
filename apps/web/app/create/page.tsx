@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useState } from "react";
+import { startTransition, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ZodError } from "zod";
 import { createAlbumDraft } from "@/src/lib/api-client";
@@ -11,7 +11,6 @@ import {
   toDraftRequest,
 } from "@/src/lib/album-flow";
 import { useAlbumFlow } from "@/src/providers/album-flow-provider";
-import { labelForAnniversaryType } from "@/src/lib/utils";
 import { MomentEditor } from "@/src/components/moment-editor";
 import { ImageUpload } from "@/src/components/image-upload";
 import { SmartDropzone } from "@/src/components/smart-dropzone";
@@ -27,7 +26,18 @@ import {
   TextareaField,
 } from "@/src/components/ui";
 
-const anniversaryOptions = ["100days", "200days", "1year", "custom"] as const;
+const anniversaryOptions = [
+  { key: "100days", label: "100일", type: "100days" as const },
+  { key: "200days", label: "200일", type: "200days" as const },
+  { key: "300days", label: "300일", type: "custom" as const },
+  { key: "500days", label: "500일", type: "custom" as const },
+  { key: "1year", label: "1주년", type: "1year" as const },
+  { key: "2years", label: "2주년", type: "custom" as const },
+  { key: "3years", label: "3주년", type: "custom" as const },
+  { key: "first-trip", label: "첫 여행", type: "custom" as const },
+  { key: "proposal", label: "프로포즈", type: "custom" as const },
+  { key: "custom", label: "직접 입력", type: "custom" as const },
+] as const;
 
 export default function CreatePage() {
   const router = useRouter();
@@ -35,13 +45,33 @@ export default function CreatePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, any>>({});
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [openCoverPicker, setOpenCoverPicker] = useState<(() => void) | null>(null);
+  const handleCoverPickerReady = useCallback((picker: () => void) => {
+    setOpenCoverPicker(() => picker);
+  }, []);
+
+  useEffect(() => {
+    if (!errorBanner) {
+      return;
+    }
+
+    setToastMessage(errorBanner);
+    const timer = window.setTimeout(() => setToastMessage(null), 3200);
+    return () => window.clearTimeout(timer);
+  }, [errorBanner]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
     setErrors({});
     setErrorBanner(null);
+
+    if (form.anniversaryType === "custom" && !form.anniversaryLabel.trim()) {
+      setIsSubmitting(false);
+      setErrorBanner("직접 정의하는 기념일 이름을 입력해 주세요.");
+      return;
+    }
 
     try {
       const payload = toDraftRequest(form);
@@ -64,7 +94,9 @@ export default function CreatePage() {
           current[path[path.length - 1]] = issue.message;
         });
         setErrors(fieldErrors);
-        setErrorBanner("입력한 내용을 다시 확인해 주세요.");
+        setErrorBanner(
+          submitError.issues[0]?.message ?? "입력한 내용을 다시 확인해 주세요.",
+        );
       } else if (submitError instanceof Error) {
         setErrorBanner(submitError.message);
       } else {
@@ -101,9 +133,18 @@ export default function CreatePage() {
         </div>
       </div>
 
-      {errorBanner ? <StatusBanner tone="error" className="rounded-2xl shadow-sm">{errorBanner}</StatusBanner> : null}
+      {toastMessage ? (
+        <div className="pointer-events-none fixed right-6 top-24 z-50 max-w-sm animate-rise">
+          <StatusBanner
+            tone="error"
+            className="rounded-2xl border-red-200/90 bg-white/95 px-5 py-4 shadow-2xl backdrop-blur"
+          >
+            {toastMessage}
+          </StatusBanner>
+        </div>
+      ) : null}
 
-      <form onSubmit={handleSubmit} className="grid gap-12">
+      <form noValidate onSubmit={handleSubmit} className="grid gap-12">
         <Panel className="p-10 rounded-[48px] bg-white/40 backdrop-blur-xl border-none shadow-glass">
           <div className="grid gap-10">
             <section>
@@ -113,103 +154,146 @@ export default function CreatePage() {
               <div className="flex flex-wrap gap-3">
                 {anniversaryOptions.map((option) => (
                   <StepPill
-                    key={option}
-                    active={form.anniversaryType === option}
+                    key={option.key}
+                    active={
+                      option.type === "custom"
+                        ? form.anniversaryType === "custom" &&
+                          form.anniversaryLabel === option.label
+                        : form.anniversaryType === option.type
+                    }
                     onClick={() =>
                       setForm((current) => ({
                         ...current,
-                        anniversaryType: option,
+                        anniversaryType: option.type,
+                        anniversaryLabel:
+                          option.key === "custom" ? current.anniversaryLabel : option.label,
                       }))
                     }
-                    className={form.anniversaryType === option ? "bg-brand-primary text-white border-brand-primary shadow-lg scale-105" : ""}
+                    className={
+                      (option.type === "custom"
+                        ? form.anniversaryType === "custom" &&
+                          form.anniversaryLabel === option.label
+                        : form.anniversaryType === option.type)
+                        ? "bg-brand-primary text-white border-brand-primary shadow-lg scale-105"
+                        : ""
+                    }
                   >
-                    {labelForAnniversaryType(option)}
+                    {option.label}
                   </StepPill>
                 ))}
               </div>
+              {form.anniversaryType === "custom" ? (
+                <div className="mt-5 max-w-md">
+                  <InputField
+                    label="직접 정의하는 기념일"
+                    placeholder="예: 300일, 첫 여행, 우리의 시작"
+                    value={form.anniversaryLabel}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        anniversaryLabel: event.target.value,
+                      }))
+                    }
+                    className="rounded-2xl border-slate-100"
+                  />
+                </div>
+              ) : null}
             </section>
 
-            <div className="grid gap-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.8fr)] xl:items-start">
-              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-6">
-                <InputField
-                  label="기념일 날짜"
-                  type="date"
-                  value={form.anniversaryDate}
-                  error={errors.anniversaryDate}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      anniversaryDate: event.target.value,
-                    }))
-                  }
-                  className="rounded-2xl border-slate-100 focus:border-brand-primary sm:col-span-2 xl:col-span-2"
-                />
-                <InputField
-                  label="보내는 이"
-                  value={form.senderName}
-                  error={errors.couple?.senderName}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      senderName: event.target.value,
-                    }))
-                  }
-                  className="rounded-2xl border-slate-100 sm:col-span-1 xl:col-span-2"
-                />
-                <InputField
-                  label="받는 이"
-                  value={form.receiverName}
-                  error={errors.couple?.receiverName}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      receiverName: event.target.value,
-                    }))
-                  }
-                  className="rounded-2xl border-slate-100 sm:col-span-1 xl:col-span-2"
-                />
-                <InputField
-                  label="앨범 타이틀"
-                  className="rounded-2xl border-slate-100 sm:col-span-2 xl:col-span-3"
-                  placeholder="우리의 열두 달"
-                  value={form.title}
-                  error={errors.title}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      title: event.target.value,
-                    }))
-                  }
-                />
-                <InputField
-                  label="서브 타이틀"
-                  className="rounded-2xl border-slate-100 sm:col-span-2 xl:col-span-3"
-                  placeholder="가장 찬란했던 계절의 기록"
-                  value={form.subtitle}
-                  error={errors.subtitle}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      subtitle: event.target.value,
-                    }))
-                  }
-                />
-                <TextareaField
-                  label="마음을 전하는 편지"
-                  className="min-h-[200px] rounded-[32px] border-slate-100 sm:col-span-2 xl:col-span-6"
-                  placeholder="여기에 당신의 진심을 담아주세요."
-                  value={form.letter}
-                  error={errors.letter}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      letter: event.target.value,
-                    }))
-                  }
-                />
+            <div className="grid gap-10 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.82fr)] xl:items-start">
+              <div className="grid gap-8">
+                <div className="grid gap-6 rounded-[32px] border border-white/60 bg-white/55 p-6 shadow-sm md:grid-cols-2 2xl:grid-cols-5">
+                  <InputField
+                    label="기념일 날짜"
+                    type="date"
+                    value={form.anniversaryDate}
+                    error={errors.anniversaryDate}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        anniversaryDate: event.target.value,
+                      }))
+                    }
+                    className="rounded-2xl border-slate-100 focus:border-brand-primary"
+                  />
+                  <InputField
+                    label="보내는 이"
+                    value={form.senderName}
+                    error={errors.couple?.senderName}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        senderName: event.target.value,
+                      }))
+                    }
+                    className="rounded-2xl border-slate-100"
+                  />
+                  <InputField
+                    label="받는 이"
+                    value={form.receiverName}
+                    error={errors.couple?.receiverName}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        receiverName: event.target.value,
+                      }))
+                    }
+                    className="rounded-2xl border-slate-100"
+                  />
+                  <InputField
+                    label="앨범 타이틀"
+                    className="rounded-2xl border-slate-100"
+                    placeholder="우리의 열두 달"
+                    value={form.title}
+                    error={errors.title}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        title: event.target.value,
+                      }))
+                    }
+                  />
+                  <InputField
+                    label="서브 타이틀"
+                    className="rounded-2xl border-slate-100 md:col-span-2 2xl:col-span-1"
+                    placeholder="가장 찬란했던 계절의 기록"
+                    value={form.subtitle}
+                    error={errors.subtitle}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        subtitle: event.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="rounded-[32px] border border-white/60 bg-white/55 p-6 shadow-sm">
+                  <TextareaField
+                    label="마음을 전하는 편지"
+                    className="min-h-[220px] rounded-[28px] border-slate-100"
+                    placeholder="여기에 당신의 진심을 담아주세요."
+                    value={form.letter}
+                    error={errors.letter}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        letter: event.target.value,
+                      }))
+                    }
+                  />
+                </div>
               </div>
 
-              <div className="xl:sticky xl:top-24">
+              <div className="grid gap-4 lg:sticky lg:top-24">
+                <div className="px-1">
+                  <p className="text-[11px] font-black uppercase tracking-[0.34em] text-brand-primary/50">
+                    Cover Preview
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                    앨범을 대표할 표지 이미지를 선택하고, 필요하면 데코레이션으로 포인트를 더해보세요.
+                  </p>
+                </div>
                 <DecorationEditor
                   decorations={form.coverDecorations || []}
                   onChange={(coverDecorations) => setForm(c => ({ ...c, coverDecorations }))}
@@ -225,8 +309,8 @@ export default function CreatePage() {
                         coverPhotoUrl: url,
                       }))
                     }
-                    className="rounded-[32px] overflow-visible border-2 border-dashed border-slate-200"
-                    onFilePickerReady={(picker) => setOpenCoverPicker(() => picker)}
+                    className="rounded-[32px] overflow-visible border-2 border-dashed border-slate-200 bg-white/70"
+                    onFilePickerReady={handleCoverPickerReady}
                   />
                 </DecorationEditor>
               </div>
@@ -283,7 +367,7 @@ export default function CreatePage() {
                 key={moment.id}
                 index={index}
                 moment={moment}
-                canRemove={form.moments.length > 3}
+                canRemove={form.moments.length > 1}
                 errors={errors.moments?.[index]}
                 onRemove={() =>
                   setForm((current) => removeMoment(current, moment.id))

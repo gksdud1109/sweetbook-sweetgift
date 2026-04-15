@@ -31,6 +31,23 @@ export type ApiResult<T> = {
   source: "api" | "mock";
 };
 
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new Error("이미지 미리보기를 생성하지 못했습니다."));
+    };
+    reader.onerror = () =>
+      reject(new Error("이미지 미리보기를 생성하지 못했습니다."));
+    reader.readAsDataURL(file);
+  });
+}
+
 type ErrorOptions = {
   code?: string;
   status?: number;
@@ -107,8 +124,7 @@ function normalizeError(error: unknown) {
 
 export async function uploadFile(file: File): Promise<string> {
   if (!API_BASE_URL) {
-    // Mock upload: return a local blob URL for preview
-    return URL.createObjectURL(file);
+    return fileToDataUrl(file);
   }
 
   const formData = new FormData();

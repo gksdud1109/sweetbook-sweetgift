@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { uploadFile } from "@/src/lib/api-client";
 import { cn } from "@/src/lib/utils";
 import { Button } from "./ui";
@@ -31,18 +31,13 @@ export function ImageUpload({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
+  const openFilePicker = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
 
   useEffect(() => {
-    onFilePickerReady?.(() => fileInputRef.current?.click());
-  }, [onFilePickerReady]);
-
-  useEffect(() => {
-    return () => {
-      if (previewUrl?.startsWith("blob:")) {
-        URL.revokeObjectURL(previewUrl);
-      }
-    };
-  }, [previewUrl]);
+    onFilePickerReady?.(openFilePicker);
+  }, [onFilePickerReady, openFilePicker]);
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -57,10 +52,10 @@ export function ImageUpload({
     try {
       const uploadedUrl = await uploadFile(file);
       onChange(uploadedUrl);
-      if (localUrl.startsWith("blob:")) {
+      if (localUrl.startsWith("blob:") && uploadedUrl !== localUrl) {
         URL.revokeObjectURL(localUrl);
       }
-      setPreviewUrl(null);
+      setPreviewUrl(uploadedUrl === localUrl ? localUrl : null);
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "업로드 실패");
     } finally {
@@ -94,7 +89,7 @@ export function ImageUpload({
 
       <div
         className={cn(
-          "relative flex aspect-[4/5] min-h-[320px] w-full flex-col items-center justify-center overflow-hidden rounded-[24px] border-2 border-dashed border-rosewood/15 bg-white/50 transition-colors hover:bg-white/80 focus-within:border-coral focus-within:bg-white sm:min-h-[380px] lg:min-h-[420px]",
+          "relative flex aspect-[4/5] min-h-[clamp(280px,52vw,560px)] w-full flex-col items-center justify-center overflow-hidden rounded-[24px] border-2 border-dashed border-rosewood/15 bg-white/50 transition-colors hover:bg-white/80 focus-within:border-coral focus-within:bg-white lg:min-h-[clamp(360px,38vw,720px)]",
           hasImage && "border-solid border-rosewood/10 bg-white",
           activeError && "border-red-300 bg-red-50/20",
           isUploading && "opacity-70",
@@ -114,7 +109,7 @@ export function ImageUpload({
                 className="px-3 py-1.5 text-xs"
                 onClick={(event) => {
                   event.stopPropagation();
-                  fileInputRef.current?.click();
+                  openFilePicker();
                 }}
               >
                 사진 교체
@@ -127,7 +122,7 @@ export function ImageUpload({
             className="flex flex-col items-center gap-2 p-8 text-rosewood/60"
             onClick={(event) => {
               event.stopPropagation();
-              fileInputRef.current?.click();
+              openFilePicker();
             }}
           >
             <svg
@@ -170,7 +165,7 @@ export function ImageUpload({
           )}
           onClick={(event) => {
             event.stopPropagation();
-            fileInputRef.current?.click();
+            openFilePicker();
           }}
         >
           {hasImage ? "사진 다시 선택" : "사진 선택"}
